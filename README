@@ -1,2 +1,22 @@
-	MollomMW: A Mollom-plugin for MediaWiki
-=======================================================
+ MollomMW: A MediaWiki extension for Mollom
+============================================
+
+MollomMW is a extension for mediawiki to fight spam. All edits will be checked
+against the Mollom webservice to see if they're ham or spam. Spam messages are
+discarded, ham messages are accepted. If Mollom is unsure about the content, the
+user will have to solve a CAPTCHA.
+
+For more information on Mollom, see http://www.mollom.com/
+
+= Installation =
+
+* Register yourself and your website on http://www.mollom.com/ to get a keypair.
+* Make sure mediawiki is installed correctly. $MEDIA_WIKI points to the installation directory
+* Copy the content of the MollomMW archive to $MEDIA_WIKI/extentions
+* Add your public and private Mollom key to $MEDIA_WIKI/LocalSettings.php
+
+$wgMollomPublicKey = 'yourpublickey';
+$wgMollomPrivateKey = 'yourprivatekey';
+
+* You're ready to go!
+
