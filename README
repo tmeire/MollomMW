@@ -11,13 +11,15 @@ For more information on Mollom, see http://www.mollom.com/
 = Requirements =
 
 * An account at http://www.mollom.com/ and a valid keypair.
-* A working MediaWiki installation. The installation directory will be refered to as $MEDIAWIKI_DIR.
+* A working MediaWiki installation. The installation directory will be refered
+  to as $MEDIAWIKI_DIR.
 * php-curl should be installed
 
 = Basic Installation =
 
 * Copy the MollomMW directory to $MEDIAWIKI_DIR/extensions
-* Point mediawiki to the extension and add your public and private Mollom key to $MEDIAWIKI_DIR/LocalSettings.php, see below:
+* Point mediawiki to the extension and add your public and private Mollom key to
+  $MEDIAWIKI_DIR/LocalSettings.php, see below:
 
 $wgMollomPublicKey = 'yourpublickey';
 $wgMollomPrivateKey = 'yourprivatekey';
@@ -35,5 +37,6 @@ needs, like companies with complicated setups and dedicated servers.
   cluster machines. This allows the wiki to provide a more accurate ip to mollom,
   which increases the accuracy of Mollom.
   (see http://mollom.com/api/handling-author-ip-addresses for more information)
-* $wgMollomDebug: outputs debug message from the extension to $MEDIA_WIKI/extensions/mollommw/debug.log
+* $wgMollomDebug: outputs debug message from the extension to
+  $MEDIAWIKI_DIR/extensions/mollommw/debug.log
 

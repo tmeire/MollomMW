@@ -2,6 +2,8 @@
 
 if (!defined('MEDIAWIKI')) { exit(1); }
 
+require_once(dirname(__FILE__) . '/mollomphp/mollom.php');
+
 define('MOLLOMMW_NAME', 'MollomWM');
 define('MOLLOMMW_VERSION', '0.1');
 
@@ -14,7 +16,15 @@ $wgExtensionCredits['other'][] = array(
 	'description' => 'Mollom plugin for MediaWiki',
 );
 
-require_once(dirname(__FILE__) . '/mollomphp/mollom.php');
+global $wgSpecialPages;
+$wgSpecialPages['mollommw'] = array(
+	'SpecialPage', /* class*/
+	'MollomMW',    /* name */
+	'editinterface',/* restriction*/
+	true,          /* listed*/
+	array('MollomSpamFilter', 'showAdminPage'), /* function*/
+	false,         /* file*/
+);
 
 global $wgMollomDebug;
 global $wgMollomPublicKey;
@@ -87,7 +97,7 @@ class MollomSpamFilter {
 		}
 
 		// check the actual content
-		$response = Mollom::checkContent(null, null, 'unsure');
+		$response = Mollom::checkContent(null, null, $text);
 		wfDebugLog('MollomMW', 'Mollom Response: ' . var_export($response, true));
 		switch ($response['spam']) {
 			case 'ham':
@@ -99,6 +109,58 @@ class MollomSpamFilter {
 				$this->sessionid = $response['sessionid'];
 				$editor->showEditForm(array(&$this, 'showCaptcha'));
 				return false;
+		}
+	}
+	
+	static function showAdminPage () {
+		global $wgOut;
+		$wgOut->setPageTitle("MollomMW Administration");
+
+		$wgOut->addWikiText("== Key validation ==");
+
+		$validKeys = Mollom::verifyKey();
+		if ($validKeys) {
+			$wgOut->addWikiText("'''Your keys are valid.'''");
+
+			$wgOut->addWikiText("== Statistics ==");
+
+			$totaldays = Mollom::getStatistics('total_days');
+			$totalRejected = Mollom::getStatistics('total_rejected');
+			$totalAccepted = Mollom::getStatistics('total_accepted');
+			$acceptedToday = Mollom::getStatistics('today_accepted');
+			$rejectedToday = Mollom::getStatistics('today_rejected');
+			$acceptedYesterday = Mollom::getStatistics('yesterday_accepted');
+			$rejectedYesterday = Mollom::getStatistics('yesterday_rejected');
+		
+			$wgOut->addWikiText('Mollom has been protecting this site for ' . $totaldays . ' days.');
+			$wgOut->addHtml(<<<HTML
+<table>
+	<tr>
+		<td></td>
+		<td>Accepted</td>
+		<td>Rejected</td>
+	</tr>
+	<tr>
+		<td>Today</td>
+		<td>$acceptedToday</td>
+		<td>$rejectedToday</td>
+	</tr>
+	<tr>
+		<td>Yesterday</td>
+		<td>$acceptedYesterday</td>
+		<td>$rejectedYesterday</td>
+	</tr>
+	<tr>
+		<td>Total</td>
+		<td>$totalAccepted</td>
+		<td>$totalRejected</td>
+	</tr>
+</table>
+For more advanced statistics, visit your site's statistics at <a href="http://www.mollom.com/user">mollom.com</a>
+HTML
+			);
+		} else {
+			$wgOut->addWikiText("'''Your keys are invalid!''' Check [http://www.mollom.com/user mollom.com] for your correct keys. ");
 		}
 	}
 }
