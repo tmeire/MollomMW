@@ -16,8 +16,8 @@ For more information on Mollom, see http://www.mollom.com/
 
 = Basic Installation =
 
-* Copy the MollomMW directory to $MEDIA_WIKI/extensions
-* Point mediawiki to the extension and add your public and private Mollom key to $MEDIA_WIKI/LocalSettings.php
+* Copy the MollomMW directory to $MEDIAWIKI_DIR/extensions
+* Point mediawiki to the extension and add your public and private Mollom key to $MEDIAWIKI_DIR/LocalSettings.php, see below:
 
 $wgMollomPublicKey = 'yourpublickey';
 $wgMollomPrivateKey = 'yourprivatekey';
