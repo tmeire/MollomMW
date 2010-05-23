@@ -448,9 +448,9 @@ class Mollom
 				case 1000:
 					throw new Exception('[error '.$code .'] '. $message, $code);
 
-				// code 1100 (Serverlist outdated)
+				// code 1100 (Serverlist outdated), set serverList = null & fall through to try again
 				case 1100:
-					throw new Exception('[error '.$code .'] '. $message, $code);
+					self::$serverList = null;
 
 				// code 1200 (Server too busy)
 				case 1200:

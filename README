@@ -1,5 +1,5 @@
- MollomMW: A MediaWiki extension for Mollom
-============================================
+ MollomMW: A Mollom plugin for MediaWiki
+=========================================
 
 MollomMW is a extension for mediawiki to fight spam. All edits will be checked
 against the Mollom webservice to see if they're ham or spam. Spam messages are
@@ -8,15 +8,32 @@ user will have to solve a CAPTCHA.
 
 For more information on Mollom, see http://www.mollom.com/
 
-= Installation =
+= Requirements =
 
-* Register yourself and your website on http://www.mollom.com/ to get a keypair.
-* Make sure mediawiki is installed correctly. $MEDIA_WIKI points to the installation directory
-* Copy the content of the MollomMW archive to $MEDIA_WIKI/extentions
-* Add your public and private Mollom key to $MEDIA_WIKI/LocalSettings.php
+* An account at http://www.mollom.com/ and a valid keypair.
+* A working MediaWiki installation. The installation directory will be refered to as $MEDIAWIKI_DIR.
+* php-curl should be installed
+
+= Basic Installation =
+
+* Copy the MollomMW directory to $MEDIA_WIKI/extensions
+* Point mediawiki to the extension and add your public and private Mollom key to $MEDIA_WIKI/LocalSettings.php
 
 $wgMollomPublicKey = 'yourpublickey';
 $wgMollomPrivateKey = 'yourprivatekey';
+require_once($IP . '/extensions/mollommw/mollommw.php');
 
 * You're ready to go!
+
+= Optional configuration =
+
+These configuration values are optional and mostly useful for users with special
+needs, like companies with complicated setups and dedicated servers.
+
+* $wgMollomServerList: a list of (dedicated) Mollom-servers.
+* $wgMollomReverseProxyAddresses: a list of ip addresses for reverse proxies or
+  cluster machines. This allows the wiki to provide a more accurate ip to mollom,
+  which increases the accuracy of Mollom.
+  (see http://mollom.com/api/handling-author-ip-addresses for more information)
+* $wgMollomDebug: outputs debug message from the extension to $MEDIA_WIKI/extensions/mollommw/debug.log
 

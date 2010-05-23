@@ -1,2 +1,6 @@
 
+* separate the reverse proxy and cluster cases in mollomphp
+* Add a page with statistics & key validation
+* Add a check for edits made using the api
+* Add a cache for the server list to reduce the traffic (maybe straight into mollomphp)
 * Incorporate MollomPHP in a clean way, instead of just copying it to our sourcedir
