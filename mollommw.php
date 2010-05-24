@@ -47,15 +47,8 @@ $wgExtensionCredits['other'][] = array(
 	'description' => 'Mollom plugin for MediaWiki',
 );
 
-global $wgSpecialPages;
-$wgSpecialPages['mollommw'] = array(
-	'SpecialPage',  /* class*/
-	'MollomMW',     /* name */
-	'editinterface',/* restriction*/
-	true,           /* listed*/
-	array('MollomSpamFilter', 'showAdminPage'), /* function*/
-	false,          /* file*/
-);
+global $wgExtensionFunctions;
+$wgExtensionFunctions[] = 'setupMollomMW';
 
 global $wgMollomDebug;
 global $wgMollomPublicKey;
@@ -63,12 +56,12 @@ global $wgMollomPrivateKey;
 global $wgMollomServerList;
 global $wgMollomReverseProxyAddresses;
 
+/* Setup the Mollom configuration */
+Mollom::setUserAgent(MOLLOMMW_NAME . '/' . MOLLOMMW_VERSION);
+
 if ($wgMollomDebug) {
 	$wgDebugLogGroups['MollomMW'] = dirname(__FILE__) . '/debug.log';
 }
-
-/* Setup the Mollom configuration */
-Mollom::setUserAgent(MOLLOMMW_NAME . '/' . MOLLOMMW_VERSION);
 
 if (isset($wgMollomServerList) && is_array($wgMollomServerList)) {
 	Mollom::setServerList($wgMollomServerList);
@@ -81,11 +74,36 @@ if (isset($wgMollomReverseProxyAddresses) && is_array($wfMollomReverseProxyAddre
 Mollom::setPublicKey($wgMollomPublicKey);
 Mollom::setPrivateKey($wgMollomPrivateKey);
 
-$filter = new MollomSpamFilter();
+/**
+ * Extension initialisation function, used to set up i18n, hooks and special pages.
+ */
+function setupMollomMW () {
+	/* load the i18n messages */
+	global $wgExtensionMessagesFiles;
+	$wgExtensionMessagesFiles['MollomMW'] = dirname(__FILE__) . '/mollommw.i18n.php';
+	wfLoadExtensionMessages('MollomMW');
 
-/* Hook it up */
-$wgHooks['EditFilter'][] = array($filter, 'wfMollomMWCheckEdit');
+	/* setup the special statistics page */
+	global $wgSpecialPages;
+	$wgSpecialPages['mollommw'] = array(
+		'SpecialPage',  /* class*/
+		'MollomMW',     /* name */
+		'editinterface',/* restriction*/
+		true,           /* listed*/
+		array('MollomSpamFilter', 'showAdminPage'), /* function*/
+		false,          /* file*/
+	);
 
+	/* Hook it up */
+	global $wgHooks;
+	$filter = new MollomSpamFilter();
+	$wgHooks['EditFilter'][] = array($filter, 'wfMollomMWCheckEdit');
+}
+
+/**
+ * MollomSpamFilter does all the heavy lifting. It talks to the Mollom class
+ * to verify the legitimacy of the edit.
+ */
 class MollomSpamFilter {
 
 	var $sessionid;
@@ -93,12 +111,8 @@ class MollomSpamFilter {
 	function getCaptchaHTML ($sessionid, $captchaHTML) {
 		/* FIXME: i18n */
 		return '<div class="mollom-captcha" style="padding: 10px 0;">' .
-		       '    <strong>Word verification</strong><br>' .
-		       '	<p>' .
-		       '		Your edit looks like spam. To confirm your edit is not spam,' .
-		       '        type the characters you see in the picture below. If you can\'t read them,'.
-		       '        submit the form and a new image will be generated. Not case sensitive.' .
-		       '	</p>' .
+		       '    <strong>' . wfMsg('mollommw-word-verification') . '</strong><br>' .
+		       '	<p>' . wfMsg('mollommw-possibly-spam') . '</p>' .
 		       '	<input type="hidden" name="mollom-sessionid" value="' . $sessionid . '">' .
 		       $captchaHTML . '<br>' .
 		       '	<label for="mollom-solution">Captcha:</label>' .
@@ -157,16 +171,16 @@ class MollomSpamFilter {
 	
 	static function showAdminPage () {
 		global $wgOut;
-		$wgOut->setPageTitle("MollomMW Administration");
+		$wgOut->setPageTitle(wfMsg('mollommw-admin'));
 
-		$wgOut->addWikiText("== Key validation ==");
+		$wgOut->addWikiText('== ' . wfMsg('mollommw-key-validation') . ' ==');
 
 		try {
 			$validKeys = Mollom::verifyKey();
 			if ($validKeys) {
-				$wgOut->addWikiText("'''Your keys are valid.'''");
+				$wgOut->addWikiText("'''" . wfMsg('mollommw-key-validation-success') . "'''");
 
-				$wgOut->addWikiText("== Statistics ==");
+				$wgOut->addWikiText('== ' . wfMsg('mollommw-stats') . ' ==');
 
 				$totaldays = Mollom::getStatistics('total_days');
 				$totalRejected = Mollom::getStatistics('total_rejected');
@@ -176,39 +190,40 @@ class MollomSpamFilter {
 				$acceptedYesterday = Mollom::getStatistics('yesterday_accepted');
 				$rejectedYesterday = Mollom::getStatistics('yesterday_rejected');
 		
-				$wgOut->addWikiText('Mollom has been protecting this site for ' . $totaldays . ' days.');
-				$wgOut->addHtml(<<<HTML
+				$wgOut->addWikiText(wfMsg('mollommw-days-protected', $totaldays));
+				$html = <<<HTML
 <table>
 	<tr>
 		<td></td>
-		<td>Accepted</td>
-		<td>Rejected</td>
+		<td>%s</td>
+		<td>%s</td>
 	</tr>
 	<tr>
-		<td>Today</td>
-		<td>$acceptedToday</td>
-		<td>$rejectedToday</td>
+		<td>%s</td>
+		<td style="text-align: center">$acceptedToday</td>
+		<td style="text-align: center">$rejectedToday</td>
 	</tr>
 	<tr>
-		<td>Yesterday</td>
-		<td>$acceptedYesterday</td>
-		<td>$rejectedYesterday</td>
+		<td>%s</td>
+		<td style="text-align: center">$acceptedYesterday</td>
+		<td style="text-align: center">$rejectedYesterday</td>
 	</tr>
 	<tr>
-		<td>Total</td>
-		<td>$totalAccepted</td>
-		<td>$totalRejected</td>
+		<td>%s</td>
+		<td style="text-align: center">$totalAccepted</td>
+		<td style="text-align: center">$totalRejected</td>
 	</tr>
 </table>
-For more advanced statistics, visit your site's statistics at <a href="http://www.mollom.com/user">mollom.com</a>
-HTML
-				);
+HTML;
+				$wgOut->addHtml(sprintf($html, wfMsg('mollommw-stats-accepted'), wfMsg('mollommw-stats-rejected'),
+					wfMsg('mollommw-stats-today'), wfMsg('mollommw-stats-yesterday'), wfMsg('mollommw-stats-total')));
+				$wgOut->addWikiText(wfMsg('mollommw-stats-advanced'));
 			} else {
-				$wgOut->addWikiText("'''Your keys are invalid!''' Check [http://www.mollom.com/user mollom.com] for your correct keys. ");
+				$wgOut->addWikiText("'''" . wfMsg('mollommw-key-validation-failure') . "'''");
 			}
 		} catch (Exception $e) {
 			wfDebugLog('MollomMW', 'Exception on statistics page: ' . $e->getMessage());
-			$wgOut->addWikiText("'''Something went wrong while contacting Mollom.''' If this problem persists, enable debugging and check the log file.");
+			$wgOut->addWikiText("'''" . wfMsg('mollommw-mollom-error') . "''''");
 		}
 	}
 }
