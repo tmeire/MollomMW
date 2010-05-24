@@ -1,7 +1,7 @@
 
-* Add i18n support
 * Separate the reverse proxy and cluster cases in mollomphp
 * Add support for audio captcha's
 * Add a check for edits made using the api
-* Add a cache for the server list to reduce the traffic
+* Add a cache for the server list
+* Add support for feedback about edits (spam, quality,...)
 * Incorporate PHPMollom in a clean way, instead of just copying it to our sourcedir
