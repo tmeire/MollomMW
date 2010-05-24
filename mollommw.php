@@ -1,11 +1,42 @@
 <?php
+/**
+ * Copyright (c) 2010, Thomas Meire. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ * 3. The name of the author may not be used to endorse or promote products
+ *    derived from this software without specific prior written permission.
+ *
+ * This software is provided by the author ``as is'' and any express or implied
+ * warranties, including, but not limited to, the implied warranties of
+ * merchantability and fitness for a particular purpose are disclaimed.
+ * In no event shall the author be liable for any direct, indirect, incidental,
+ * special, exemplary, or consequential damages (including, but not limited to,
+ * procurement of substitute goods or services; loss of use, data, or profits;
+ * or business interruption) however caused and on any theory of liability,
+ * whether in contract, strict liability, or tort (including negligence or
+ * otherwise) arising in any way out of the use of this software, even if
+ * advised of the possibility of such damage.
+ *
+ * @author			Thomas Meire <blackskad+mollom@gmail.com>
+ * @version			0.0.1
+ *
+ * @copyright		Copyright (c) 2010, Thomas Meire. All rights reserved.
+ * @license			http://mollom.crsolutions.be/license Modified BSD License
+ */
 
 if (!defined('MEDIAWIKI')) { exit(1); }
 
-require_once(dirname(__FILE__) . '/mollomphp/mollom.php');
+require_once(dirname(__FILE__) . '/phpmollom/mollom.php');
 
 define('MOLLOMMW_NAME', 'MollomWM');
-define('MOLLOMMW_VERSION', '0.1');
+define('MOLLOMMW_VERSION', '0.0.1');
 
 $wgExtensionCredits['other'][] = array(
 	'path'        => __FILE__,
@@ -18,12 +49,12 @@ $wgExtensionCredits['other'][] = array(
 
 global $wgSpecialPages;
 $wgSpecialPages['mollommw'] = array(
-	'SpecialPage', /* class*/
-	'MollomMW',    /* name */
+	'SpecialPage',  /* class*/
+	'MollomMW',     /* name */
 	'editinterface',/* restriction*/
-	true,          /* listed*/
+	true,           /* listed*/
 	array('MollomSpamFilter', 'showAdminPage'), /* function*/
-	false,         /* file*/
+	false,          /* file*/
 );
 
 global $wgMollomDebug;
@@ -83,32 +114,44 @@ class MollomSpamFilter {
 	/**
 	 * Check edits from the webinterface for spam. Messages are rejected when they're
 	 * 'spam'. Messages marked as 'unknown' or 'unsure' will trigger a captcha.
-	 *
-	 * @fixme: add error handling, it'll crash bigtime now if the servers are offline
 	 */
 	function wfMollomMWCheckEdit($editor, $text, $section, &$error) {
 
 		// a captcha was solved, check it first.
 		if (isset($_POST['mollom-sessionid']) && isset($_POST['mollom-solution'])) {
-			if (Mollom::checkCaptcha($_POST['mollom-sessionid'], $_POST['mollom-solution'])) {
-				wfDebugLog('MollomMW', 'Correctly solved a captcha');
+			try {
+				if (Mollom::checkCaptcha($_POST['mollom-sessionid'], $_POST['mollom-solution'])) {
+					wfDebugLog('MollomMW', 'Correctly solved a captcha');
+					return true;
+				}
+			} catch (Exception $e) {
+				wfDebugLog('MollomMW', 'Exception while checking captcha: ' . $e->getMessage());
+				// What's the default action if this fails?
+				// Accept it for now...
 				return true;
 			}
 		}
 
 		// check the actual content
-		$response = Mollom::checkContent(null, null, $text);
-		wfDebugLog('MollomMW', 'Mollom Response: ' . var_export($response, true));
-		switch ($response['spam']) {
-			case 'ham':
-				return true;
-			case 'spam':
-				$editor->spamPage();
-				return false;
-			default: /* 'unsure' or 'unknown' */
-				$this->sessionid = $response['sessionid'];
-				$editor->showEditForm(array(&$this, 'showCaptcha'));
-				return false;
+		try {
+			$response = Mollom::checkContent(null, null, $text);
+			wfDebugLog('MollomMW', 'Mollom Response: ' . var_export($response, true));
+			switch ($response['spam']) {
+				case 'ham':
+					return true;
+				case 'spam':
+					$editor->spamPage();
+					return false;
+				default: /* 'unsure' or 'unknown' */
+					$this->sessionid = $response['sessionid'];
+					$editor->showEditForm(array(&$this, 'showCaptcha'));
+					return false;
+			}
+		} catch (Exception $e) {
+			wfDebugLog('MollomMW', 'Exception while checking content: ' . $e->getMessage());
+			// What's the default action if this fails?
+			// Accept it for now...
+			return true;
 		}
 	}
 	
@@ -118,22 +161,23 @@ class MollomSpamFilter {
 
 		$wgOut->addWikiText("== Key validation ==");
 
-		$validKeys = Mollom::verifyKey();
-		if ($validKeys) {
-			$wgOut->addWikiText("'''Your keys are valid.'''");
+		try {
+			$validKeys = Mollom::verifyKey();
+			if ($validKeys) {
+				$wgOut->addWikiText("'''Your keys are valid.'''");
 
-			$wgOut->addWikiText("== Statistics ==");
+				$wgOut->addWikiText("== Statistics ==");
 
-			$totaldays = Mollom::getStatistics('total_days');
-			$totalRejected = Mollom::getStatistics('total_rejected');
-			$totalAccepted = Mollom::getStatistics('total_accepted');
-			$acceptedToday = Mollom::getStatistics('today_accepted');
-			$rejectedToday = Mollom::getStatistics('today_rejected');
-			$acceptedYesterday = Mollom::getStatistics('yesterday_accepted');
-			$rejectedYesterday = Mollom::getStatistics('yesterday_rejected');
+				$totaldays = Mollom::getStatistics('total_days');
+				$totalRejected = Mollom::getStatistics('total_rejected');
+				$totalAccepted = Mollom::getStatistics('total_accepted');
+				$acceptedToday = Mollom::getStatistics('today_accepted');
+				$rejectedToday = Mollom::getStatistics('today_rejected');
+				$acceptedYesterday = Mollom::getStatistics('yesterday_accepted');
+				$rejectedYesterday = Mollom::getStatistics('yesterday_rejected');
 		
-			$wgOut->addWikiText('Mollom has been protecting this site for ' . $totaldays . ' days.');
-			$wgOut->addHtml(<<<HTML
+				$wgOut->addWikiText('Mollom has been protecting this site for ' . $totaldays . ' days.');
+				$wgOut->addHtml(<<<HTML
 <table>
 	<tr>
 		<td></td>
@@ -158,9 +202,13 @@ class MollomSpamFilter {
 </table>
 For more advanced statistics, visit your site's statistics at <a href="http://www.mollom.com/user">mollom.com</a>
 HTML
-			);
-		} else {
-			$wgOut->addWikiText("'''Your keys are invalid!''' Check [http://www.mollom.com/user mollom.com] for your correct keys. ");
+				);
+			} else {
+				$wgOut->addWikiText("'''Your keys are invalid!''' Check [http://www.mollom.com/user mollom.com] for your correct keys. ");
+			}
+		} catch (Exception $e) {
+			wfDebugLog('MollomMW', 'Exception on statistics page: ' . $e->getMessage());
+			$wgOut->addWikiText("'''Something went wrong while contacting Mollom.''' If this problem persists, enable debugging and check the log file.");
 		}
 	}
 }

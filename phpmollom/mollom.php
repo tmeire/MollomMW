@@ -39,7 +39,7 @@
  * @version			1.1.3
  *
  * @copyright		Copyright (c) 2008, Tijs Verkoyen. All rights reserved.
- * @license			http://mollom.local/license BSD License
+ * @license			http://mollom.crsolutions.be/license BSD License
  */
 class Mollom
 {
