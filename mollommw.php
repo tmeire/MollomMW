@@ -75,8 +75,14 @@ if (isset($wgMollomReverseProxyAddresses) && is_array($wfMollomReverseProxyAddre
 Mollom::setPublicKey($wgMollomPublicKey);
 Mollom::setPrivateKey($wgMollomPrivateKey);
 
+$filter = new MollomSpamFilter();
+
+/* Connect the hooks for the mollom filters */
+global $wgHooks;
+$wgHooks['EditFilter'][] = $filter;
+
 /**
- * Extension initialisation function, used to set up i18n, hooks and special pages.
+ * Extension initialisation function, used to set up i18n and special pages.
  */
 function setupMollomMW () {
 	/* load the i18n messages */
@@ -87,11 +93,6 @@ function setupMollomMW () {
 	/* setup the special statistics page */
 	global $wgSpecialPages;
 	$wgSpecialPages['mollommw'] = 'MollomMWAdminPage';
-
-	/* Hook it up */
-	global $wgHooks;
-	$filter = new MollomSpamFilter();
-	$wgHooks['EditFilter'][] = array($filter, 'wfMollomMWCheckEdit');
 }
 
 /**
@@ -113,7 +114,7 @@ class MollomSpamFilter {
 		       '</div>';
 	}
 
-	function showCaptcha (&$out) {
+	function showCaptcha(&$out) {
 		$captcha = Mollom::getImageCaptcha($this->sessionid);
 		$out->addHtml($this->getCaptchaHtml($captcha['session_id'], $captcha['html']));
 	}
@@ -122,7 +123,7 @@ class MollomSpamFilter {
 	 * Check edits from the webinterface for spam. Messages are rejected when they're
 	 * 'spam'. Messages marked as 'unknown' or 'unsure' will trigger a captcha.
 	 */
-	function wfMollomMWCheckEdit($editor, $text, $section, &$error) {
+	function onEditFilter($editor, $text, $section, &$error) {
 
 		// a captcha was solved, check it first.
 		if (isset($_POST['mollom-sessionid']) && isset($_POST['mollom-solution'])) {
