@@ -48,8 +48,9 @@ $wgExtensionCredits['other'][] = array(
 	'description' => 'Mollom plugin for MediaWiki',
 );
 
-global $wgExtensionFunctions;
+global $wgExtensionFunctions, $wgExtensionMessageFiles;
 $wgExtensionFunctions[] = 'setupMollomMW';
+$wgExtensionMessagesFiles['MollomMW'] = dirname(__FILE__) . '/mollommw.i18n.php';
 
 global $wgMollomDebug;
 global $wgMollomPublicKey;
@@ -82,14 +83,9 @@ global $wgHooks;
 $wgHooks['EditFilter'][] = $filter;
 
 /**
- * Extension initialisation function, used to set up i18n and special pages.
+ * Extension initialisation function, used to set up special pages.
  */
 function setupMollomMW () {
-	/* load the i18n messages */
-	global $wgExtensionMessagesFiles;
-	$wgExtensionMessagesFiles['MollomMW'] = dirname(__FILE__) . '/mollommw.i18n.php';
-	wfLoadExtensionMessages('MollomMW');
-
 	/* setup the special statistics page */
 	global $wgSpecialPages;
 	$wgSpecialPages['mollommw'] = 'MollomMWAdminPage';
@@ -124,6 +120,8 @@ class MollomSpamFilter {
 	 * 'spam'. Messages marked as 'unknown' or 'unsure' will trigger a captcha.
 	 */
 	function onEditFilter($editor, $text, $section, &$error) {
+		/* load the i18n messages */
+		wfLoadExtensionMessages('MollomMW');
 
 		// a captcha was solved, check it first.
 		if (isset($_POST['mollom-sessionid']) && isset($_POST['mollom-solution'])) {

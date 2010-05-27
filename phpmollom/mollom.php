@@ -744,6 +744,17 @@ class Mollom
 
 
 	/**
+	 * Get the public key
+	 *
+	 * @return	string
+	 */
+	public static function getPublicKey()
+	{
+		return self::$publicKey;
+	}
+
+
+	/**
 	 * Set the server list
 	 *
 	 * @return	void
