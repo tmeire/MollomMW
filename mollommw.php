@@ -80,6 +80,7 @@ $filter = new MollomSpamFilter();
 /* Connect the hooks for the mollom filters */
 global $wgHooks;
 $wgHooks['EditFilter'][] = $filter;
+$wgHooks['onAPIEditBeforeSave'][] = $filter;
 
 /**
  * Extension initialisation function, used to set up special pages.
@@ -156,6 +157,27 @@ class MollomSpamFilter {
 					$this->sessionid = $response['sessionid'];
 					$editor->showEditForm(array(&$this, 'showCaptcha'));
 					return false;
+			}
+		} catch (Exception $e) {
+			wfDebugLog('MollomMW', 'Exception while checking content: ' . $e->getMessage());
+			// What's the default action if this fails?
+			// Accept it for now...
+			return true;
+		}
+	}
+	
+	function onAPIEditBeforeSave (&$EditPage, $text, &$resultArr) {
+		// check the actual content
+		try {
+			$response = Mollom::checkContent(null, null, $text);
+			wfDebugLog('MollomMW', 'Mollom Response: ' . var_export($response, true));
+			switch ($response['spam']) {
+				case 'spam':
+					$resultArr[] = wfMsg('mollom-spam');
+					return false;
+				case 'ham':
+				default: /* 'unsure' or 'unknown' */
+					return true;
 			}
 		} catch (Exception $e) {
 			wfDebugLog('MollomMW', 'Exception while checking content: ' . $e->getMessage());
