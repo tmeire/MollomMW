@@ -48,9 +48,9 @@ $wgExtensionCredits['other'][] = array(
 	'description' => 'Mollom plugin for MediaWiki',
 );
 
-global $wgExtensionFunctions, $wgExtensionMessageFiles;
-$wgExtensionFunctions[] = 'setupMollomMW';
+global $wgExtensionFunctions, $wgExtensionMessagesFiles;
 $wgExtensionMessagesFiles['MollomMW'] = dirname(__FILE__) . '/mollommw.i18n.php';
+$wgExtensionFunctions[] = 'setupMollomMW';
 
 global $wgMollomDebug;
 global $wgMollomPublicKey;

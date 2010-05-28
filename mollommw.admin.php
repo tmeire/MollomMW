@@ -41,7 +41,7 @@ class MollomMWAdminPage extends SpecialPage {
 
 	function execute( $par ) {
 		global $wgOut;
-		$wgOut->setPageTitle(wfMsg('mollommw-admin'));
+		$wgOut->setPageTitle(wfMsg('mollommw'));
 
 		$wgOut->addWikiText('== ' . wfMsg('mollommw-key-validation') . ' ==');
 

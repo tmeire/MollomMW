@@ -8,7 +8,7 @@
 $messages = array();
 
 $messages['en'] = array(
-	'mollommw-admin'                  => 'MollomMW Administration',
+	'mollommw'                        => 'MollomMW Administration',
 	'mollommw-mollom-error'           => 'Something went wrong while contacting Mollom. If this problem persists, enable debugging and check the log file.',
 	'mollommw-key-validation'         => 'Mollom Key Validation',
 	'mollommw-key-validation-success' => 'Your Mollom keys are valid.',
@@ -19,7 +19,7 @@ $messages['en'] = array(
 );
 
 $messages['nl'] = array(
-	'mollommw-admin'                  => 'MollomMW Administratie',
+	'mollommw'                        => 'MollomMW Administratie',
 	'mollommw-mollom-error'           => 'Er ging iets fout tijdens de communicatie met Mollom. Schakel de debug modus in en controlleer de log file als dit probleem zich blijft voordoen.',
 	'mollommw-key-validation'         => 'Mollom Sleutel Verificatie',
 	'mollommw-key-validation-success' => 'Je Mollom sleutels zijn correct geverifieerd.',
