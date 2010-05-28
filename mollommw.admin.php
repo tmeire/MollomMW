@@ -33,14 +33,21 @@
 
 class MollomMWAdminPage extends SpecialPage {
 	function __construct() {
-		parent::__construct('MollomMW', 'block');
+		parent::__construct('MollomMW', 'mollommw-admin');
 
 		/* load the i18n messages */
 		wfLoadExtensionMessages('MollomMW');
 	}
 
 	function execute( $par ) {
-		global $wgOut;
+		global $wgOut, $wgUser;
+
+		/* check for user permissions */
+		if (!$this->userCanExecute($wgUser)) {
+			$this->displayRestrictionError();
+			return;
+		}
+
 		$wgOut->setPageTitle(wfMsg('mollommw'));
 
 		$wgOut->addWikiText('== ' . wfMsg('mollommw-key-validation') . ' ==');

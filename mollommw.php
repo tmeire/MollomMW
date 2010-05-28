@@ -48,7 +48,6 @@ $wgExtensionCredits['other'][] = array(
 	'description' => 'Mollom plugin for MediaWiki',
 );
 
-global $wgExtensionFunctions, $wgExtensionMessagesFiles;
 $wgExtensionMessagesFiles['MollomMW'] = dirname(__FILE__) . '/mollommw.i18n.php';
 $wgExtensionFunctions[] = 'setupMollomMW';
 
@@ -89,6 +88,11 @@ function setupMollomMW () {
 	/* setup the special statistics page */
 	global $wgSpecialPages;
 	$wgSpecialPages['mollommw'] = 'MollomMWAdminPage';
+
+	/* setup special permissions for the mollommw administration page */
+	global $wgGroupPermissions, $wgAvailableRights;
+	$wgGroupPermissions['sysop']['mollommw-admin'] = true;
+	$wgAvailableRights[] = 'mollommw-admin';
 }
 
 /**
