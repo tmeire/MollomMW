@@ -72,6 +72,10 @@ if (isset($wgMollomReverseProxyAddresses) && is_array($wfMollomReverseProxyAddre
 	Mollom::setAllowedReverseProxyAddresses($wfMollomReverseProxyAddresses);
 }
 
+if (isset($wgMollomRunsOnClusterSetup)) {
+	Mollom::setUsesServerSetup ($wgMollomRunsOnClusterSetup);
+}
+
 Mollom::setPublicKey($wgMollomPublicKey);
 Mollom::setPrivateKey($wgMollomPrivateKey);
 

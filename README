@@ -33,8 +33,12 @@ These configuration values are optional and mostly useful for users with special
 needs, like companies with complicated setups and dedicated servers.
 
 * $wgMollomServerList: a list of (dedicated) Mollom-servers.
-* $wgMollomReverseProxyAddresses: a list of ip addresses for reverse proxies or
-  cluster machines. This allows the wiki to provide a more accurate ip to mollom,
+* $wgMollomReverseProxyAddresses: a list of ip addresses for reverse proxies.
+  This allows the wiki to provide a more accurate ip to mollom,
+  which increases the accuracy of Mollom.
+  (see http://mollom.com/api/handling-author-ip-addresses for more information)
+* $wgMollomRunsOnClusterSetup: a boolean value, indicating whether this setup runs
+  on a cluster or not. This allows the wiki to provide a more accurate ip to mollom,
   which increases the accuracy of Mollom.
   (see http://mollom.com/api/handling-author-ip-addresses for more information)
 * $wgMollomDebug: outputs debug message from the extension to

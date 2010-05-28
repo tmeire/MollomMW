@@ -1,5 +1,4 @@
 
-* Separate the reverse proxy and cluster cases in mollomphp
 * Add support for audio captcha's
 * Add a check for edits made using the api
 * Add a cache for the server list

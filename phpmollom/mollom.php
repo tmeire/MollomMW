@@ -80,6 +80,14 @@ class Mollom
 
 
 	/**
+	 * Does this setup runs on a cluster?
+	 *
+	 * @var bool
+	 */
+	private static $usesClusterSetup = false;
+
+
+	/**
 	 * The default server
 	 *
 	 * No need to change
@@ -582,12 +590,16 @@ class Mollom
 		{
 			if(isset($_SERVER['HTTP_X_FORWARDED_FOR']))
 			{
+				// running behind a proxy
 				if(!empty(self::$allowedReverseProxyAddresses) && in_array($ipAddress, self::$allowedProxyAddresses, true))
 				{
 					return array_pop(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']));
 				}
    			}
+		}
 
+		if(self::$usesClusterSetup)
+		{
    			// running in a cluster environment
 			if(isset($_SERVER['HTTP_X_CLUSTER_CLIENT_IP'])) return $_SERVER['HTTP_X_CLUSTER_CLIENT_IP'];
 		}
@@ -716,6 +728,24 @@ class Mollom
 
 		// set reverse proxy
 		self::$reverseProxy = (!empty($addresses)) ? true : false;
+		if (self::$reverseProxy) {
+			self::$usesClusterSetup = false;
+		}
+	}
+
+
+	/**
+	 * Set true if this setup runs on a cluster. If this setup runs on a cluster, the reverse proxy is disabled.
+	 *
+	 * @return	void
+	 * @param	bool $usesClusterSetup;
+	 */
+	public static function setUsesClusterSetup ($usesClusterSetup)
+	{
+		server::$usesClusterSetup = $usesClusterSetup;
+		if (server::$usesClusterSetup) {
+			self::$reverseProxy = false;
+		}
 	}
 
 
