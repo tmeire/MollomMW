@@ -1,4 +1,3 @@
 
 * Add support for audio captcha's
-* Add a cache for the server list
 * Add support for feedback about edits (spam, quality,...)

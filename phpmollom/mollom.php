@@ -45,6 +45,7 @@
  */
 
 require_once (dirname(__FILE__) . '/xmlrpc.php');
+require_once (dirname(__FILE__) . '/cache.php');
 
 define('MOLLOM_HAM', 1);
 define('MOLLOM_SPAM', 2);
@@ -103,7 +104,7 @@ class Mollom
 	 *
 	 * @var	array
 	 */
-	private static $serverList = array('http://xmlrpc.mollom.com');
+	private static $serverList = array();
 
 
 	/**
@@ -132,6 +133,14 @@ class Mollom
 	 * @var	string
 	 */
 	private static $version = '1.0';
+
+
+	/**
+	 * The cache which is used to store the list of mollom servers
+	 * 
+	 * @var ServerListCache 
+	 */
+	private static $serverListCache = null;
 
 
 	/**
@@ -246,7 +255,7 @@ class Mollom
 		}
 
 		// an empty serverlist, try to retrieve a list of mollom servers
-		if (empty(self::$serverList)) {
+		if (count(self::$serverList) == 0) {
 			self::getServerList();
 		}
 
@@ -282,7 +291,7 @@ class Mollom
 						throw new Exception('XMLRPC returned error message: ' . $e->getMessage());
 						break;
 					case 1100:	// refresh server list and start again
-						self::getServerList();
+						self::getServerList(true);
 						$i = 0;
 						break;
 					case 1200:	// server too busy, try next server
@@ -422,9 +431,16 @@ class Mollom
 	 *
 	 * @return	array
 	 */
-	private static function getServerList($counter = 0)
+	private static function getServerList($forcedRefresh = false)
 	{
-		// TODO: try to load them from cache
+		// if the refresh isn't forced by mollom,
+		// try to load the servers from the cache first
+		if (!$forcedRefresh && self::$serverListCache != null) {
+			self::$serverList = self::$serverListCache->load();
+			if (count(self::$serverList) > 0) {
+				return;
+			}
+		}
 
 		// add generic server, so we can bootstrap
 		self::$serverList[] = 'http://xmlrpc.mollom.com';
@@ -441,7 +457,10 @@ class Mollom
 			$serverList = array('http://xmlrpc.mollom.com');
 		}
 
-		// TODO: write serverlist to cache
+		// store the updated list in the cache
+		if (self::$serverListCache != null) {
+			self::$serverListCache->store($serverList);
+		}
 
 		// return
 		self::$serverList = $serverList;
@@ -629,6 +648,17 @@ class Mollom
 	{
 		return self::doCall('verifyKey');
 	}
+
+	/**
+	 * Set a new object to use as ServerListCache
+	 * @param ServerListCache $cache
+	 */
+	public static function setServerListCache ($cache) {
+		self::$serverListCache = $cache;
+	}
 }
+
+$cachefile = dirname(__file__) . '/servers.txt';
+Mollom::setServerListCache(new ServerListFileCache($cachefile));
 
 ?>
