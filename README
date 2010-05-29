@@ -13,7 +13,7 @@ For more information on Mollom, see http://www.mollom.com/
 * An account at http://www.mollom.com/ and a valid keypair.
 * A working MediaWiki installation. The installation directory will be refered
   to as $MEDIAWIKI_DIR.
-* php-curl should be installed
+* php-xmlrpc should be installed
 
 = Basic Installation =
 
@@ -32,7 +32,6 @@ require_once($IP . '/extensions/mollommw/mollommw.php');
 These configuration values are optional and mostly useful for users with special
 needs, like companies with complicated setups and dedicated servers.
 
-* $wgMollomServerList: a list of (dedicated) Mollom-servers.
 * $wgMollomReverseProxyAddresses: a list of ip addresses for reverse proxies.
   This allows the wiki to provide a more accurate ip to mollom,
   which increases the accuracy of Mollom.

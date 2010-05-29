@@ -40,7 +40,16 @@
  *
  * @copyright		Copyright (c) 2008, Tijs Verkoyen. All rights reserved.
  * @license			http://mollom.crsolutions.be/license BSD License
+ *
+ * Additional changes by Thomas Meire.
  */
+
+require_once (dirname(__FILE__) . '/xmlrpc.php');
+
+define('MOLLOM_HAM', 1);
+define('MOLLOM_SPAM', 2);
+define('MOLLOM_UNSURE', 3);
+
 class Mollom
 {
 	/**
@@ -88,23 +97,13 @@ class Mollom
 
 
 	/**
-	 * The default server
-	 *
-	 * No need to change
-	 *
-	 * @var	string
-	 */
-	private static $serverHost = 'xmlrpc.mollom.com';
-
-
-	/**
 	 * The cache for the serverlist
 	 *
 	 * No need to change
 	 *
 	 * @var	array
 	 */
-	private static $serverList = array();
+	private static $serverList = array('http://xmlrpc.mollom.com');
 
 
 	/**
@@ -136,45 +135,6 @@ class Mollom
 
 
 	/**
-	 * Build the value so we can use it in XML-RPC requests
-	 *
-	 * @return	string
-	 * @param	mixed $value
-	 */
-	private function buildValue($value)
-	{
-		// get type
-		$type = gettype($value);
-
-		// build value
-		switch ($type)
-		{
-			case 'string':
-				// escape it, cause Mollom can't handle CDATA (no pun intended)
-				$value = htmlspecialchars($value, ENT_QUOTES, 'ISO-8859-15');
-				return '<value><string>'. $value .'</string></value>'."\n";
-
-			case 'array':
-				// init struct
-				$struct = '<value>'."\n";
-				$struct .= '	<struct>'."\n";
-
-				// loop array
-				foreach ($value as $key => $value) $struct .= str_replace("\n", '', '<member>'. "\n" .'<name>'. $key .'</name>'. self::buildValue($value) .'</member>') . "\n";
-
-				$struct .= '	</struct>'."\n";
-				$struct .= '</value>'."\n";
-
-				// return
-				return $struct;
-
-			default:
-				return '<value>'. $value .'</value>'."\n";
-		}
-	}
-
-
-	/**
 	 * Validates the answer for a CAPTCHA
 	 *
 	 * When the answer is false, you should request a new image- or audio-CAPTCHA, make sure your provide the current Mollom-sessionid.
@@ -186,41 +146,29 @@ class Mollom
 	 */
 	public static function checkCaptcha($sessionId, $solution)
 	{
-		// redefine
-		$sessionId = (string) $sessionId;
-		$solution = (string) $solution;
-
 		// set autor ip
 		$authorIp = self::getIpAddress();
 
 		// set parameters
-		$parameters['session_id'] = $sessionId;
-		$parameters['solution'] = $solution;
+		$parameters['session_id'] = (string) $sessionId;
+		$parameters['solution'] = (string) $solution;
 		if($authorIp != null) $parameters['author_ip'] = (string) $authorIp;
 
 		// do the call
-		$responseString = self::doCall('checkCaptcha', $parameters);
-		// validate
-		if(!isset($responseString->params->param->value->boolean)) throw new Exception('Invalid response in checkCapthca.');
-
-		// return
-		if((string) $responseString->params->param->value->boolean == '1') return true;
-
-		// fallback
-		return false;
+		return self::doCall('checkCaptcha', $parameters);
 	}
 
 
 	/**
 	 * Check if the data is spam or not, and gets an assessment of the datas quality
 	 *
-	 * This function will be used most. The more data you submit the more accurate the claasification will be.
+	 * This function will be used most. The more data you submit the more accurate the classification will be.
 	 * If the spamstatus is 'unsure', you could send the user an extra check (eg. a captcha).
 	 *
 	 * REMARK: the Mollom-sessionid is NOT related to HTTP-session, so don't send 'session_id'.
 	 *
 	 * The function will return an array with 3 elements:
-	 * - spam			the spam-status (unknown/ham/spam/unsure)
+	 * - spam			the spam-status (ham/spam/unsure)
 	 * - quality		an assessment of the content's quality (between 0 and 1)
 	 * - session_id		Molloms session_id
 	 *
@@ -241,7 +189,6 @@ class Mollom
 
 		// init var
 		$parameters = array();
-		$aReturn = array();
 
 		// add parameters
 		if($sessionId !== null) $parameters['session_id'] = (string) $sessionId;
@@ -258,106 +205,61 @@ class Mollom
 		if($authorIp != null) $parameters['author_ip'] = (string) $authorIp;
 
 		// do the call
-		$responseString = self::doCall('checkContent', $parameters);
-
-		// validate
-		if(!isset($responseString->params->param->value->struct->member)) throw new Exception('Invalid response in checkContent.');
-
-		// loop parts
-		foreach ($responseString->params->param->value->struct->member as $part)
-		{
-			// get key
-			$key = $part->name;
-
-			// get value
-			switch ($part->name)
-			{
-				case 'spam':
-					$value = (string) $part->value->int;
-
-					switch($value)
-					{
-						case '0':
-							$aReturn['spam'] = 'unknown';
-						break;
-
-						case '1':
-							$aReturn['spam'] = 'ham';
-						break;
-
-						case '2':
-							$aReturn['spam'] = 'spam';
-						break;
-
-						case '3':
-							$aReturn['spam'] = 'unsure';
-						break;
-					}
-				break;
-
-				case 'quality':
-					$aReturn['quality'] = (float) $part->value->double;
-				break;
-
-				case 'session_id':
-					$aReturn['session_id'] = (string) $part->value->string;
-				break;
-			}
-		}
-
-		// return
-		return $aReturn;
+		return self::doCall('checkContent', $parameters);
 	}
 
 
 	/**
-	 * Make the call
+	 * Calculate the hash for the given timestamp and nonce.
+	 * 
+	 * @return	string
+	 * @param	string $time
+	 * @param	string $nonce
+	 */
+	private static function getHash ($time, $nonce)
+	{
+		return base64_encode(
+			pack("H*", sha1((str_pad(self::$privateKey, 64, chr(0x00)) ^ (str_repeat(chr(0x5c), 64))) .
+			pack("H*", sha1((str_pad(self::$privateKey, 64, chr(0x00)) ^ (str_repeat(chr(0x36), 64))) .
+			$time . ':' . $nonce . ':' . self::$privateKey))))
+		);
+	}
+
+
+	/**
+	 * Make the call.
 	 *
-	 * @return	SimpleXMLElement
+	 * @return	array with the response from mollom
 	 * @param	string $method
 	 * @param	array[optional] $parameters
 	 */
-	private static function doCall($method, $parameters = array(), $server = null, $counter = 0)
+	private static function doCall($method, $parameters = array())
 	{
-		// count available servers
-		$countServerList = count(self::$serverList);
+		// check if public key is set
+		if(self::$publicKey === null) {
+			throw new Exception('Public key wasn\'t set.');
+		}
 
-		if($server === null && $countServerList == 0) throw new Exception('No servers found, populate the serverlist. See setServerList().');
+		// check if private key is set
+		if(self::$privateKey === null) {
+			throw new Exception('Private key wasn\'t set.');
+		}
+
+		// an empty serverlist, try to retrieve a list of mollom servers
+		if (empty(self::$serverList)) {
+			self::getServerList();
+		}
 
 		// redefine var
 		$method = (string) $method;
 		$parameters = (array) $parameters;
 
-		// possible methods
-		$aPossibleMethods = array('checkCaptcha', 'checkContent', 'getAudioCaptcha', 'getImageCaptcha', 'getServerList', 'getStatistics', 'sendFeedback', 'verifyKey');
-
-		// check if method is valid
-		if(!in_array($method, $aPossibleMethods)) throw new Exception('Invalid method. Only '. implode(', ', $aPossibleMethods) .' are possible methods.');
-
-		// check if public key is set
-		if(self::$publicKey === null) throw new Exception('Public key wasn\'t set.');
-
-		// check if private key is set
-		if(self::$privateKey === null) throw new Exception('Private key wasn\'t set.');
-
-		// still null
-		if($server === null) $server = self::$serverList[$counter];
-
-		// cleanup server string
-		$server = str_replace(array('http://', 'https://'), '', $server);
-
-		// create timestamp
+		// create timestamp & nonce
 		$time = gmdate("Y-m-d\TH:i:s.\\0\\0\\0O", time());
+		$nonce = md5($time);
 
-		// create nonce
-		$nonce = md5(time());
-
-		// create has
-		$hash = base64_encode(
-					pack("H*", sha1((str_pad(self::$privateKey, 64, chr(0x00)) ^ (str_repeat(chr(0x5c), 64))) .
-					pack("H*", sha1((str_pad(self::$privateKey, 64, chr(0x00)) ^ (str_repeat(chr(0x36), 64))) .
-					$time . ':'. $nonce .':'. self::$privateKey))))
-				);
+		// create hash
+		$hash = self::getHash ($time, $nonce);
 
 		// add parameters
 		$parameters['public_key'] = self::$publicKey;
@@ -365,116 +267,40 @@ class Mollom
 		$parameters['hash'] = $hash;
 		$parameters['nonce'] = $nonce;
 
-		// build request
-		$requestBody = '<?xml version="1.0"?>' ."\n";
-		$requestBody .= '<methodCall>' ."\n";
-		$requestBody .= '	<methodName>mollom.'. $method .'</methodName>' ."\n";
-		$requestBody .= '	<params>' ."\n";
-		$requestBody .= '		<param>'."\n";
-		$requestBody .= '			'. self::buildValue($parameters) ."\n";
-		$requestBody .= '		</param>'."\n";
-		$requestBody .= '	</params>' ."\n";
-		$requestBody .= '</methodCall>' ."\n";
+		$request = new XMLRPCRequest('mollom.' . $method, $parameters);
+		$request->setOption('user_agent', self::$userAgent);
+		$request->setOption('timeout', self::$timeout);
 
-		// create curl
-		$curl = @curl_init();
-
-		// set useragent
-		@curl_setopt($curl, CURLOPT_USERAGENT, self::$userAgent);
-
-		// set options
-		@curl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
-		@curl_setopt($curl, CURLOPT_POST, true);
-		@curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-		@curl_setopt($curl, CURLOPT_HEADER, true);
-		@curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-		@curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, self::$timeout);
-		@curl_setopt($curl, CURLOPT_TIMEOUT, self::$timeout);
-
-		// set url
-		@curl_setopt($curl, CURLOPT_URL, $server .'/'. self::$version);
-
-		// set body
-		@curl_setopt($curl, CURLOPT_POSTFIELDS, $requestBody);
-
-		// get response
-		$response = @curl_exec($curl);
-
-		// get errors
-		$errorNumber = (int) @curl_errno($curl);
-		$errorString = @curl_error($curl);
-
-		// close
-		@curl_close($curl);
-
-		// validate response
-		if($response === false || $errorNumber != 0)
-		{
-			// increment counter
-			$counter++;
-
-			// no servers left
-			if($errorNumber == 28 && !isset(self::$serverList[$counter]) && $countServerList != 0) throw new Exception('No more servers available, try to increase the timeout.');
-
-			// timeout
-			elseif($errorNumber == 28 && isset(self::$serverList[$counter])) return self::doCall($method, $parameters, self::$serverList[$counter], $counter);
-
-			// other error
-			else throw new Exception('Something went wrong. Maybe the following message can be handy.<br />'. $errorString, $errorNumber);
-		}
-
-		// process response
-		$parts = explode("\r\n\r\n", $response);
-
-		// validate
-		if(!isset($parts[0]) || !isset($parts[1])) throw new Exception('Invalid response in doCall.');
-
-		// get headers
-		$headers = $parts[0];
-
-		// rebuild body
-		array_shift($parts);
-		$body = implode('', $parts);
-
-		// validate header
-		$aValidHeaders = array('HTTP/1.0 200', 'HTTP/1.1 200');
-		if(!in_array(substr($headers, 0, 12), $aValidHeaders)) throw new Exception('Invalid headers.');
-
-		// do some validation
-		$responseXML = @simplexml_load_string($body);
-		if($responseXML === false) throw new Exception('Invalid body.');
-
-		if(isset($responseXML->fault))
-		{
-			$code = (isset($responseXML->fault->value->struct->member[0]->value->int)) ? (int) $responseXML->fault->value->struct->member[0]->value->int : 'unknown';
-			$message = (isset($responseXML->fault->value->struct->member[1]->value->string)) ? (string) $responseXML->fault->value->struct->member[1]->value->string : 'unknown';
-
-			// handle errors
-			switch ($code)
-			{
-				// code 1000 (Parse error or internal problem)
-				case 1000:
-					throw new Exception('[error '.$code .'] '. $message, $code);
-
-				// code 1100 (Serverlist outdated), set serverList = null & fall through to try again
-				case 1100:
-					self::$serverList = null;
-
-				// code 1200 (Server too busy)
-				case 1200:
-					if(self::$serverList === null) self::getServerList();
-
-					// do call again
-					return self::doCall($method, $parameters, self::$serverList[$counter], $counter++);
-				break;
-
-				default:
-					throw new Exception('[error '.$code .'] '. $message, $code);
+		$i = 0;
+		$result = null;
+		while ($result == null && $i < count(self::$serverList)) {
+			try {
+				$result = $request->execute(self::$serverList[$i] . '/' . self::$version);
+			} catch (XMLRPCException $e) {
+				switch ($e->getCode()) {
+					case 1000:	// internal mollom error, can't continue...
+						throw new Exception('XMLRPC returned error message: ' . $e->getMessage());
+						break;
+					case 1100:	// refresh server list and start again
+						self::getServerList();
+						$i = 0;
+						break;
+					case 1200:	// server too busy, try next server
+					default:	// unknown error, try next server
+						$i++;
+				}
 			}
 		}
 
-		// return
-		return $responseXML;
+		if ($i == count(self::$serverList)) {
+			self::$serverList = array();
+			throw new Exception("All Mollom servers are down.");
+		}
+
+		if ($result == null) {
+			throw new Exception("The server didn't return a valid response.");
+		}
+		return $result;
 	}
 
 
@@ -497,7 +323,6 @@ class Mollom
 	public static function getAudioCaptcha($sessionId = null)
 	{
 		// init vars
-		$aReturn = array();
 		$parameters = array();
 
 		// set autor ip
@@ -508,22 +333,14 @@ class Mollom
 		if($authorIp != null) $parameters['author_ip'] = (string) $authorIp;
 
 		// do the call
-		$responseString = self::doCall('getAudioCaptcha', $parameters);
+		$response = self::doCall('getAudioCaptcha', $parameters);
 
-		// validate
-		if(!isset($responseString->params->param->value->struct->member)) throw new Exception('Invalid response in getAudioCaptcha.');
-
-		// loop elements
-		foreach ($responseString->params->param->value->struct->member as $part) $aReturn[(string) $part->name] = (string) $part->value->string;
-
-		// add image html
-		$aReturn['html'] = '<object type="audio/mpeg" data="'. $aReturn['url'] .'" width="50" height="16">'."\n"
+		// add audio html
+		$response['html'] = '<object type="audio/mpeg" data="'. $response['url'] .'" width="50" height="16">'."\n"
 								."\t".'<param name="autoplay" value="false" />'."\n"
 								."\t".'<param name="controller" value="true" />'."\n"
 							.'</object>';
-
-		// return
-		return $aReturn;
+		return $response;
 	}
 
 
@@ -546,7 +363,6 @@ class Mollom
 	public static function getImageCaptcha($sessionId = null)
 	{
 		// init vars
-		$aReturn = array();
 		$parameters = array();
 
 		// set autor ip
@@ -557,19 +373,11 @@ class Mollom
 		if($authorIp !== null) $parameters['author_ip'] = (string) $authorIp;
 
 		// do the call
-		$responseString = self::doCall('getImageCaptcha', $parameters);
-
-		// validate
-		if(!isset($responseString->params->param->value->struct->member)) throw new Exception('Invalid response in getImageCaptcha.');
-
-		// loop elements
-		foreach ($responseString->params->param->value->struct->member as $part) $aReturn[(string) $part->name] = (string) $part->value->string;
+		$response = self::doCall('getImageCaptcha', $parameters);
 
 		// add image html
-		$aReturn['html'] = '<img src="'. $aReturn['url'] .'" alt="Mollom CAPTCHA" />';
-
-		// return
-		return $aReturn;
+		$response['html'] = '<img src="'. $response['url'] .'" alt="Mollom CAPTCHA" />';
+		return $response;
 	}
 
 
@@ -614,21 +422,30 @@ class Mollom
 	 *
 	 * @return	array
 	 */
-	public static function getServerList($counter = 0)
+	private static function getServerList($counter = 0)
 	{
-		// do the call
-		$responseString = self::doCall('getServerList', array(), self::$serverHost, $counter);
+		// TODO: try to load them from cache
 
-		// validate
-		if(!isset($responseString->params->param->value->array->data->value)) throw new Exception('Invalid response in getServerList.');
+		// add generic server, so we can bootstrap
+		self::$serverList[] = 'http://xmlrpc.mollom.com';
 
-		// loop servers and add them
-		foreach ($responseString->params->param->value->array->data->value as $server) self::$serverList[] = (string) $server->string;
+		try {
+			// do the call
+			$serverList = self::doCall('getServerList', array());
+		} catch (Excepion $e) {
+			$serverList = array();
+		}
 
-		if(count(self::$serverList) == 0) self::$serverList = array('http://xmlrpc3.mollom.com', 'http://xmlrpc2.mollom.com', 'http://xmlrpc1.mollom.com');
+		// something went wrong, use the generic server
+		if(count($serverList) == 0) {
+			$serverList = array('http://xmlrpc.mollom.com');
+		}
+
+		// TODO: write serverlist to cache
 
 		// return
-		return self::$serverList;
+		self::$serverList = $serverList;
+		return $serverList;
 	}
 
 
@@ -659,13 +476,7 @@ class Mollom
 		if(!in_array($type, $aPossibleTypes)) throw new Exception('Invalid type. Only '. implode(', ', $aPossibleTypes) .' are possible types.');
 
 		// do the call
-		$responseString = self::doCall('getStatistics', array('type' => $type));
-
-		// validate
-		if(!isset($responseString->params->param->value->int)) throw new Exception('Invalid response in getStatistics.');
-
-		// return
-		return (int) $responseString->params->param->value->int;
+		return self::doCall('getStatistics', array('type' => $type));
 	}
 
 
@@ -702,16 +513,7 @@ class Mollom
 		$parameters['feedback'] = $feedback;
 
 		// do the call
-		$responseString = self::doCall('sendFeedback', $parameters);
-
-		// validate
-		if(!isset($responseString->params->param->value->boolean)) throw new Exception('Invalid response in sendFeedback.');
-
-		// return
-		if((string) $responseString->params->param->value->boolean == 1) return true;
-
-		// fallback
-		return false;
+		return self::doCall('sendFeedback', $parameters);
 	}
 
 
@@ -785,22 +587,6 @@ class Mollom
 
 
 	/**
-	 * Set the server list
-	 *
-	 * @return	void
-	 * @param	array $servers
-	 */
-	public static function setServerList($servers)
-	{
-		// redefine
-		$server = (array) $servers;
-
-		// loop servers
-		foreach ($servers as $server) self::$serverList[] = $server;
-	}
-
-
-	/**
 	 * Set timeout
 	 *
 	 * @return	void
@@ -841,19 +627,8 @@ class Mollom
 	 */
 	public static function verifyKey()
 	{
-		// do the call
-		$responseString = self::doCall('verifyKey');
-
-		// validate
-		if(!isset($responseString->params->param->value->boolean)) throw new Exception('Invalid response in verifyKey.');
-
-		// return
-		if((string) $responseString->params->param->value->boolean == '1') return true;
-
-		// fallback
-		return false;
+		return self::doCall('verifyKey');
 	}
-
 }
 
 ?>

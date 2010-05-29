@@ -67,7 +67,7 @@ class MollomMWAdminPage extends SpecialPage {
 			}
 		} catch (Exception $e) {
 			wfDebugLog('MollomMW', 'Exception on statistics page: ' . $e->getMessage());
-			$wgOut->addWikiText("'''" . wfMsg('mollommw-mollom-error') . "''''");
+			$wgOut->addWikiText("'''" . wfMsg('mollommw-mollom-error') . "'''");
 		}
 	}
 }

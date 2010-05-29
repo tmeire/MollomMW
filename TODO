@@ -1,6 +1,4 @@
 
 * Add support for audio captcha's
-* Add a check for edits made using the api
 * Add a cache for the server list
 * Add support for feedback about edits (spam, quality,...)
-* Incorporate PHPMollom in a clean way, instead of just copying it to our sourcedir

@@ -64,10 +64,6 @@ if ($wgMollomDebug) {
 	$wgDebugLogGroups['MollomMW'] = dirname(__FILE__) . '/debug.log';
 }
 
-if (isset($wgMollomServerList) && is_array($wgMollomServerList)) {
-	Mollom::setServerList($wgMollomServerList);
-}
-
 if (isset($wgMollomReverseProxyAddresses) && is_array($wfMollomReverseProxyAddresses)) {
 	Mollom::setAllowedReverseProxyAddresses($wfMollomReverseProxyAddresses);
 }
@@ -152,13 +148,13 @@ class MollomSpamFilter {
 			$response = Mollom::checkContent(null, null, $text);
 			wfDebugLog('MollomMW', 'Mollom Response: ' . var_export($response, true));
 			switch ($response['spam']) {
-				case 'ham':
+				case MOLLOM_HAM:
 					return true;
-				case 'spam':
+				case MOLLOM_SPAM:
 					$editor->spamPage();
 					return false;
 				default: /* 'unsure' or 'unknown' */
-					$this->sessionid = $response['sessionid'];
+					$this->sessionid = $response['session_id'];
 					$editor->showEditForm(array(&$this, 'showCaptcha'));
 					return false;
 			}
@@ -176,11 +172,11 @@ class MollomSpamFilter {
 			$response = Mollom::checkContent(null, null, $text);
 			wfDebugLog('MollomMW', 'Mollom Response: ' . var_export($response, true));
 			switch ($response['spam']) {
-				case 'spam':
+				case MOLLOM_SPAM:
 					$resultArr[] = wfMsg('mollom-spam');
 					return false;
-				case 'ham':
-				default: /* 'unsure' or 'unknown' */
+				case MOLLOM_HAM:
+				default: /* 'unsure' or unknown */
 					return true;
 			}
 		} catch (Exception $e) {
