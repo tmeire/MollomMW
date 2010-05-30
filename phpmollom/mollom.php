@@ -104,15 +104,15 @@ class Mollom
 	 *
 	 * @var	array
 	 */
-	private static $serverList = array();
+	public static $serverList = array();
 
 
 	/**
 	 * Default timeout
 	 *
-	 * @var	int
+	 * @var	float
 	 */
-	private static $timeout = 10;
+	private static $timeout = 1.5;
 
 
 	/**
@@ -282,7 +282,7 @@ class Mollom
 
 		$i = 0;
 		$result = null;
-		while ($result == null && $i < count(self::$serverList)) {
+		while ($result === null && $i < count(self::$serverList)) {
 			try {
 				$result = $request->execute(self::$serverList[$i] . '/' . self::$version);
 			} catch (XMLRPCException $e) {
@@ -298,6 +298,9 @@ class Mollom
 					default:	// unknown error, try next server
 						$i++;
 				}
+			} catch (Exception $e) {
+				// most likely a network error, just try the next server
+				$i++;
 			}
 		}
 
@@ -306,7 +309,7 @@ class Mollom
 			throw new Exception("All Mollom servers are down.");
 		}
 
-		if ($result == null) {
+		if ($result === null) {
 			throw new Exception("The server didn't return a valid response.");
 		}
 		return $result;
@@ -648,6 +651,31 @@ class Mollom
 	{
 		return self::doCall('verifyKey');
 	}
+	
+	
+	public static function addBlacklistURL($url)
+	{
+		$params = array();
+		$params['url'] = $url;
+		
+		return self::doCall('addBlacklistURL', $params);
+	}
+	
+	
+	public static function removeBlacklistURL($url)
+	{
+		$params = array();
+		$params['url'] = $url;
+		
+		return self::doCall('removeBlacklistURL', $params);
+	}
+	
+	
+	public static function listBlacklistURL()
+	{
+		return self::doCall('listBlacklistURL');
+	}
+
 
 	/**
 	 * Set a new object to use as ServerListCache

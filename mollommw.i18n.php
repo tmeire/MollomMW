@@ -12,14 +12,24 @@ $messages['en'] = array(
 	'mollommw-key-validation'         => 'Mollom Key Validation',
 	'mollommw-key-validation-success' => 'Your Mollom keys are valid.',
 	'mollommw-key-validation-failure' => 'Your Mollom keys are invalid! Check [http://www.mollom.com/user mollom.com] for your correct keys.',
-	'mollommw-stats'                  => 'Mollom Statistics',
+	'mollommw-statistics'             => 'Statistics',
+
 	'mollommw-word-verification'      => 'Word verification',
 	'mollommw-possibly-spam'          => 'Your edit looks like spam. To confirm your edit is not spam, type the characters you see in the picture below. If you can\'t read them, submit the form and a new image will be generated. Not case sensitive.',
 	'mollommw-spam'                   => 'You\'re message has been rejected as it\'s marked as spam.',
 
+	'mollommw-blacklists'             => 'Blacklist Management',
+	'mollommw-blacklist-url'          => 'Url Blacklist',
+	'mollommw-blacklist-url-add'      => 'Add url to blacklist',
+	'mollommw-blacklist-url-remove'   => 'Remove url',
+	'mollommw-blacklist-text'         => 'Text Blacklist',
+	'mollommw-blacklist-text-add'     => 'Add text to blacklist',
+	'mollommw-blacklist-text-remove'  => 'Remove text',
+
 	'specialpages-group-mollommw'     => 'MollomMW Administration',
 	// no need to translate the lines below
 	'specialpages-specialpagegroup-mollommw-statistics' => 'mollommw',
+	'specialpages-specialpagegroup-mollommw-blacklists' => 'mollommw',
 );
 
 $messages['nl'] = array(
@@ -27,10 +37,13 @@ $messages['nl'] = array(
 	'mollommw-key-validation'         => 'Mollom Sleutel Verificatie',
 	'mollommw-key-validation-success' => 'Je Mollom sleutels zijn correct geverifieerd.',
 	'mollommw-key-validation-failure' => 'Je Mollom sleutels kunnen niet geverifieerd worden! Controlleer je sleutels op [http://www.mollom.com/user mollom.com].',
-	'mollommw-stats'                  => 'Mollom Statistieken',
+	'mollommw-statistics'             => 'Statistieken',
+
 	'mollommw-word-verification'      => 'Woord verificatie',
 	'mollommw-possibly-spam'          => 'Je wijziging bevat verschillende kenmerken van spam. Typ de karakters uit onderstaande afbeelding over om te bevestigen dat de wijzigingen geen spam zijn. Sla de wijzigingen opnieuw op indien de afbeelding onleesbaar is, er zal dan een nieuwe afbeelding getoond worden. De karakters zijn niet hoofdlettergevoelig.',
 	'mollommw-spam'                   => 'Je bericht werd geweigerd omdat het aangemerkt werd als spam.',
+
+	'mollommw-blacklists'             => 'Blacklist Beheer',
 
 	'specialpages-group-mollommw'     => 'MollomMW Administratie',
 );

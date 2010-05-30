@@ -31,36 +31,47 @@
  * @license			http://mollom.crsolutions.be/license Modified BSD License
  */
 
-class MollomMWStatPage extends SpecialPage {
-	public function __construct() {
-		parent::__construct('MollomMW-Statistics', 'mollommw-admin');
+class MollomMWBlacklistPage extends SpecialPage {
+	function __construct() {
+		parent::__construct('mollommw-blacklists', 'mollommw-admin');
 
 		/* load the i18n messages */
 		wfLoadExtensionMessages('MollomMW');
 	}
 
-	public function execute($par) {
-		global $wgOut, $wgUser;
-
-		/* check for user permissions */
-		if (!$this->userCanExecute($wgUser)) {
-			$this->displayRestrictionError();
-			return;
+	public function execute () {
+		global $wgOut;
+		
+		if (isset($_POST['add']) && isset($_POST['url'])) {
+			Mollom::addBlacklistURL($_POST['url']);
 		}
 
-		$wgOut->setPageTitle(wfMsg('mollommw-statistics'));
-		try {
-			$validKeys = Mollom::verifyKey();
-			if ($validKeys) {
-				$wgOut->addHtml('<embed src="http://mollom.com/statistics.swf?key=' . Mollom::getPublicKey() . '"
-				quality="high" width="500" height="480" name="Mollom" align="middle" play="true" loop="false" allowScriptAccess="sameDomain"
-				type="application/x-shockwave-flash" pluginspage="http://www.adobe.com/go/getflashplayer"></embed>');
-			} else {
-				$wgOut->addWikiText("'''" . wfMsg('mollommw-key-validation-failure') . "'''");
-			}
-		} catch (Exception $e) {
-			wfDebugLog('MollomMW', 'Exception on statistics page: ' . $e->getMessage());
-			$wgOut->addWikiText("'''" . wfMsg('mollommw-mollom-error') . "'''");
+		if (isset($_POST['remove']) && isset($_POST['url'])) {
+			Mollom::removeBlacklistURL($_POST['url']);
 		}
+
+		$wgOut->setPageTitle(wfMsg('mollommw-blacklists'));
+
+		$wgOut->addWikiText('== ' . wfMsg('mollommw-blacklist-url') . ' ==');
+		
+		$urls = Mollom::listBlacklistURL();
+		$wgOut->addHtml('<table>');
+		foreach ($urls as $url) {
+			$wgOut->addHtml('<tr>');
+			$wgOut->addHtml('	<td>' . $url['url'] . ' added on ' . date('d-m-Y H:i', strtotime($url['created'])) . '</td>');
+			$wgOut->addHtml('
+				<td><form method="post">
+					<input type="hidden" name="url" value="' . $url['url'] . '">
+					<input type="submit" name="remove" value="' . wfMsg('mollommw-blacklist-url-remove') . '">
+				</form></td>');
+			$wgOut->addHtml('</tr>');
+		}
+		$wgOut->addHtml('</table>');
+		
+		$wgOut->addHtml('<form method="post"><input type="text" name="url"><br><input type="submit" name="add" value="' . wfMsg('mollommw-blacklist-url-add') . '"></form>');
+
+		//$wgOut->addWikiText('== ' . wfMsg('mollommw-blacklist-text') . ' ==');
 	}
 }
+
+?>
