@@ -31,15 +31,15 @@
  * @license			http://mollom.crsolutions.be/license Modified BSD License
  */
 
-class MollomMWAdminPage extends SpecialPage {
-	function __construct() {
-		parent::__construct('MollomMW', 'mollommw-admin');
+class MollomMWStatPage extends SpecialPage {
+	public function __construct() {
+		parent::__construct('MollomMW-Statistics', 'mollommw-admin');
 
 		/* load the i18n messages */
 		wfLoadExtensionMessages('MollomMW');
 	}
 
-	function execute( $par ) {
+	public function execute($par) {
 		global $wgOut, $wgUser;
 
 		/* check for user permissions */
@@ -48,20 +48,13 @@ class MollomMWAdminPage extends SpecialPage {
 			return;
 		}
 
-		$wgOut->setPageTitle(wfMsg('mollommw'));
-
-		$wgOut->addWikiText('== ' . wfMsg('mollommw-key-validation') . ' ==');
-
+		$wgOut->setPageTitle(wfMsg('mollommw-stats'));
 		try {
 			$validKeys = Mollom::verifyKey();
 			if ($validKeys) {
-				$wgOut->addWikiText("'''" . wfMsg('mollommw-key-validation-success') . "'''");
-
-				$wgOut->addWikiText('== ' . wfMsg('mollommw-stats') . ' ==');
-
 				$wgOut->addHtml('<embed src="http://mollom.com/statistics.swf?key=' . Mollom::getPublicKey() . '"
-					quality="high" width="500" height="480" name="Mollom" align="middle" play="true" loop="false" allowScriptAccess="sameDomain"
-					type="application/x-shockwave-flash" pluginspage="http://www.adobe.com/go/getflashplayer"></embed>');
+				quality="high" width="500" height="480" name="Mollom" align="middle" play="true" loop="false" allowScriptAccess="sameDomain"
+				type="application/x-shockwave-flash" pluginspage="http://www.adobe.com/go/getflashplayer"></embed>');
 			} else {
 				$wgOut->addWikiText("'''" . wfMsg('mollommw-key-validation-failure') . "'''");
 			}

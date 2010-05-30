@@ -34,7 +34,7 @@
 if (!defined('MEDIAWIKI')) { exit(1); }
 
 require_once(dirname(__FILE__) . '/phpmollom/mollom.php');
-require_once(dirname(__FILE__) . '/mollommw.admin.php');
+require_once(dirname(__FILE__) . '/pages/mollommw.stats.php');
 
 define('MOLLOMMW_NAME', 'MollomWM');
 define('MOLLOMMW_VERSION', '0.0.1');
@@ -88,7 +88,7 @@ $wgHooks['onAPIEditBeforeSave'][] = $filter;
 function setupMollomMW () {
 	/* setup the special statistics page */
 	global $wgSpecialPages;
-	$wgSpecialPages['mollommw'] = 'MollomMWAdminPage';
+	$wgSpecialPages['mollommw-statistics'] = 'MollomMWStatPage';
 
 	/* setup special permissions for the mollommw administration page */
 	global $wgGroupPermissions, $wgAvailableRights;

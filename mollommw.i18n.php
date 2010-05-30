@@ -3,12 +3,11 @@
  * Internationalisation file for MollomMW extension.
  *
  * @addtogroup Extensions
-*/
+ */
 
 $messages = array();
 
 $messages['en'] = array(
-	'mollommw'                        => 'MollomMW Administration',
 	'mollommw-mollom-error'           => 'Something went wrong while contacting Mollom. If this problem persists, enable debugging and check the log file.',
 	'mollommw-key-validation'         => 'Mollom Key Validation',
 	'mollommw-key-validation-success' => 'Your Mollom keys are valid.',
@@ -17,10 +16,13 @@ $messages['en'] = array(
 	'mollommw-word-verification'      => 'Word verification',
 	'mollommw-possibly-spam'          => 'Your edit looks like spam. To confirm your edit is not spam, type the characters you see in the picture below. If you can\'t read them, submit the form and a new image will be generated. Not case sensitive.',
 	'mollommw-spam'                   => 'You\'re message has been rejected as it\'s marked as spam.',
+
+	'specialpages-group-mollommw'     => 'MollomMW Administration',
+	// no need to translate the lines below
+	'specialpages-specialpagegroup-mollommw-statistics' => 'mollommw',
 );
 
 $messages['nl'] = array(
-	'mollommw'                        => 'MollomMW Administratie',
 	'mollommw-mollom-error'           => 'Er ging iets fout tijdens de communicatie met Mollom. Schakel de debug modus in en controlleer de log file als dit probleem zich blijft voordoen.',
 	'mollommw-key-validation'         => 'Mollom Sleutel Verificatie',
 	'mollommw-key-validation-success' => 'Je Mollom sleutels zijn correct geverifieerd.',
@@ -29,4 +31,6 @@ $messages['nl'] = array(
 	'mollommw-word-verification'      => 'Woord verificatie',
 	'mollommw-possibly-spam'          => 'Je wijziging bevat verschillende kenmerken van spam. Typ de karakters uit onderstaande afbeelding over om te bevestigen dat de wijzigingen geen spam zijn. Sla de wijzigingen opnieuw op indien de afbeelding onleesbaar is, er zal dan een nieuwe afbeelding getoond worden. De karakters zijn niet hoofdlettergevoelig.',
 	'mollommw-spam'                   => 'Je bericht werd geweigerd omdat het aangemerkt werd als spam.',
+
+	'specialpages-group-mollommw'     => 'MollomMW Administratie',
 );
