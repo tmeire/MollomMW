@@ -653,6 +653,36 @@ class Mollom
 	}
 	
 	
+	public static function addBlacklistText($text, $context, $reason)
+	{
+		$parameters = array();
+		
+		$parameters['text'] = $text;
+		$parameters['context'] = $context;
+		$parameters['reason'] = $reason;
+		
+		return self::doCall('addBlacklistText', $parameters);
+	}
+
+
+	public static function removeBlacklistText($text, $context, $reason)
+	{
+		$parameters = array();
+
+		$parameters['text'] = $text;
+		$parameters['context'] = $context;
+		$parameters['reason'] = $reason;
+		
+		return self::doCall('removeBlacklistText', $parameters);
+	}
+
+
+	public static function listBlacklistText()
+	{
+		return self::doCall('listBlacklistText');
+	}
+
+
 	public static function addBlacklistURL($url)
 	{
 		$params = array();

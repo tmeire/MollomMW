@@ -1,0 +1,18 @@
+
+table {
+	margin-left: 20px;
+	border-collapse: collapse;
+	width: 900px;
+}
+
+thead {
+	font-weight: bold;
+}
+
+tr {
+	border-bottom: 1px solid #ddd;
+}
+
+td {
+	padding: 5px 10px;
+}

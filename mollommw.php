@@ -34,8 +34,6 @@
 if (!defined('MEDIAWIKI')) { exit(1); }
 
 require_once(dirname(__FILE__) . '/phpmollom/mollom.php');
-require_once(dirname(__FILE__) . '/pages/mollommw.stats.php');
-require_once(dirname(__FILE__) . '/pages/mollommw.blacklist.php');
 
 define('MOLLOMMW_NAME', 'MollomWM');
 define('MOLLOMMW_VERSION', '0.0.1');
@@ -87,6 +85,11 @@ $wgHooks['onAPIEditBeforeSave'][] = $filter;
  * Extension initialisation function, used to set up special pages.
  */
 function setupMollomMW () {
+	/* setup autoloading of special page classes */
+	global $wgAutoloadClasses;
+	$wgAutoloadClasses['MollomMWStatPage'] = dirname(__FILE__) . '/pages/mollommw.stats.php';
+	$wgAutoloadClasses['MollomMWBlacklistPage'] = dirname(__FILE__) . '/pages/mollommw.blacklist.php';
+
 	/* setup the special statistics page */
 	global $wgSpecialPages;
 	$wgSpecialPages['mollommw-statistics'] = 'MollomMWStatPage';
