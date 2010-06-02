@@ -109,20 +109,28 @@ class MollomSpamFilter {
 
 	var $sessionid;
 
-	function getCaptchaHTML ($sessionid, $captchaHTML) {
-		return '<div class="mollom-captcha" style="padding: 10px 0;">' .
-		       '    <strong>' . wfMsg('mollommw-word-verification') . '</strong><br>' .
-		       '	<p>' . wfMsg('mollommw-possibly-spam') . '</p>' .
-		       '	<input type="hidden" name="mollom-sessionid" value="' . $sessionid . '">' .
-		       $captchaHTML . '<br>' .
-		       '	<label for="mollom-solution">Captcha:</label>' .
-		       '	<input type="text" class="captcha" name="mollom-solution"><br>' .
-		       '</div>';
+	function getCaptchaHTML ($image, $audio) {
+		return '<div class="mollom-captcha" style="padding: 10px 0;">
+					<strong>' . wfMsg('mollommw-word-verification') . '</strong><br>
+		       		<p>' . wfMsg('mollommw-possibly-spam') . '<br>
+		       			<a href="#" onclick="onMollomCaptchaToggle()">' . wfMsg('mollommw-captcha-toggle') . '</a>
+		       		</p>
+		       		<input type="hidden" id="mollom-captcha-type" name="mollom-captcha-type" value="text">
+		       		<input type="hidden" name="mollom-image-sessionid" value="' . $image['session_id'] . '">
+		       		<input type="hidden" name="mollom-audio-sessionid" value="' . $audio['session_id'] . '">
+		       		<span id="mollom-captcha-image">' . $image['html'] . '</span>
+		       		<span id="mollom-captcha-audio" style="display: none">' . $audio['html'] . '</span><br>
+		       		<label for="mollom-solution">Captcha:</label>
+		       		<input type="text" class="captcha" name="mollom-solution"><br>
+		       </div>';
 	}
 
 	function showCaptcha(&$out) {
-		$captcha = Mollom::getImageCaptcha($this->sessionid);
-		$out->addHtml($this->getCaptchaHtml($captcha['session_id'], $captcha['html']));
+		global $wgScriptPath;
+		$out->addScriptFile($wgScriptPath . '/extensions/mollommw/skins/mollommw.js');
+		$image = Mollom::getImageCaptcha($this->sessionid);
+		$audio = Mollom::getAudioCaptcha($this->sessionid);
+		$out->addHtml($this->getCaptchaHtml($image, $audio));
 	}
 
 	/**
@@ -134,9 +142,11 @@ class MollomSpamFilter {
 		wfLoadExtensionMessages('MollomMW');
 
 		// a captcha was solved, check it first.
-		if (isset($_POST['mollom-sessionid']) && isset($_POST['mollom-solution'])) {
+		if (isset($_POST['mollom-captcha-type']) && isset($_POST['mollom-solution'])) {
+			$imageSessionId = $_POST['mollom-image-sessionid'];
+			$audioSessionId = $_POST['mollom-audio-sessionid'];
 			try {
-				if (Mollom::checkCaptcha($_POST['mollom-sessionid'], $_POST['mollom-solution'])) {
+				if (Mollom::checkcaptcha(($_POST['mollom-captcha-type'] == "text") ? $imageSessionId : $audioSessionId, $_POST['mollom-solution'])) {
 					wfDebugLog('MollomMW', 'Correctly solved a captcha');
 					return true;
 				}

@@ -348,7 +348,7 @@ class Mollom
 		$response = self::doCall('getAudioCaptcha', $parameters);
 
 		// add audio html
-		$response['html'] = '<object type="audio/mpeg" data="'. $response['url'] .'" width="50" height="16">'."\n"
+		$response['html'] = '<object type="audio/mpeg" data="'. $response['url'] .'" style="width: 160px; height: 50px;">'."\n"
 								."\t".'<param name="autoplay" value="false" />'."\n"
 								."\t".'<param name="controller" value="true" />'."\n"
 							.'</object>';
