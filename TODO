@@ -1,8 +1,0 @@
-
-* Add support for audio captcha's
-* Add support for feedback about edits (spam, quality,...)
-* Implement remaining client api calls
-* Split out mollom core
-* Implement reseller api
-* Make filtering behaviour controllable (disabled, analysis, analysis + captcha)
-* Add user option define behaviour on network failure (accept all vs. block all)
