@@ -32,6 +32,15 @@ require_once($IP . '/extensions/mollommw/mollommw.php');
 These configuration values are optional and mostly useful for users with special
 needs, like companies with complicated setups and dedicated servers.
 
+* $wgMollomMWAcceptPolicy: a bool indicating the policy that should be followed
+  for edits from the website when all Mollom servers are down. true means all
+  messages are accepted, false means all messages are rejected. Default value
+  is true.
+* $wgMollomMWAPIAcceptPolicy: a bool indicating the policy that should be
+  followed for edits from the api when all Mollom servers are down. true means
+  all messages are accepted, false means all messages are rejected. Default
+  value is false.
+
 * $wgMollomReverseProxyAddresses: a list of ip addresses for reverse proxies.
   This allows the wiki to provide a more accurate ip to mollom,
   which increases the accuracy of Mollom.
@@ -40,6 +49,7 @@ needs, like companies with complicated setups and dedicated servers.
   on a cluster or not. This allows the wiki to provide a more accurate ip to mollom,
   which increases the accuracy of Mollom.
   (see http://mollom.com/api/handling-author-ip-addresses for more information)
+
 * $wgMollomDebug: outputs debug message from the extension to
   $MEDIAWIKI_DIR/extensions/mollommw/debug.log
 

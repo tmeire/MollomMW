@@ -56,6 +56,9 @@ global $wgMollomPrivateKey;
 global $wgMollomServerList;
 global $wgMollomReverseProxyAddresses;
 
+global $wgMollomMWAcceptPolicy;
+global $wgMollomMWAPIAcceptPolicy;
+
 /* Setup the Mollom configuration */
 Mollom::setUserAgent(MOLLOMMW_NAME . '/' . MOLLOMMW_VERSION);
 
@@ -63,12 +66,20 @@ if ($wgMollomDebug) {
 	$wgDebugLogGroups['MollomMW'] = dirname(__FILE__) . '/debug.log';
 }
 
-if (isset($wgMollomReverseProxyAddresses) && is_array($wfMollomReverseProxyAddresses)) {
-	Mollom::setAllowedReverseProxyAddresses($wfMollomReverseProxyAddresses);
+if (isset($wgMollomReverseProxyAddresses) && is_array($wgMollomReverseProxyAddresses)) {
+	Mollom::setAllowedReverseProxyAddresses($wgMollomReverseProxyAddresses);
 }
 
 if (isset($wgMollomRunsOnClusterSetup)) {
 	Mollom::setUsesServerSetup ($wgMollomRunsOnClusterSetup);
+}
+
+if (!isset($wgMollomMWAcceptPolicy) && !is_bool($wgMollomMWAcceptPolicy)) {
+	$wgMollomMWAPIAcceptPolicy = true;
+}
+
+if (!isset($wgMollomMWAPIAcceptPolicy) && !is_bool($wgMollomMWAPIAcceptPolicy)) {
+	$wgMollomMWAPIAcceptPolicy = false;
 }
 
 Mollom::setPublicKey($wgMollomPublicKey);
@@ -138,6 +149,8 @@ class MollomSpamFilter {
 	 * 'spam'. Messages marked as 'unknown' or 'unsure' will trigger a captcha.
 	 */
 	function onEditFilter($editor, $text, $section, &$error) {
+		global $wgMollomMWAcceptPolicy;
+
 		/* load the i18n messages */
 		wfLoadExtensionMessages('MollomMW');
 
@@ -152,9 +165,7 @@ class MollomSpamFilter {
 				}
 			} catch (Exception $e) {
 				wfDebugLog('MollomMW', 'Exception while checking captcha: ' . $e->getMessage());
-				// What's the default action if this fails?
-				// Accept it for now...
-				return true;
+				return $wgMollomMWAcceptPolicy;
 			}
 		}
 
@@ -175,13 +186,12 @@ class MollomSpamFilter {
 			}
 		} catch (Exception $e) {
 			wfDebugLog('MollomMW', 'Exception while checking content: ' . $e->getMessage());
-			// What's the default action if this fails?
-			// Accept it for now...
-			return true;
+			return $wgMollomMWAcceptPolicy;
 		}
 	}
 	
 	function onAPIEditBeforeSave (&$EditPage, $text, &$resultArr) {
+		global $wgMollomwMWAPIAcceptPolicy;
 		// check the actual content
 		try {
 			$response = Mollom::checkContent(null, null, $text);
@@ -196,9 +206,7 @@ class MollomSpamFilter {
 			}
 		} catch (Exception $e) {
 			wfDebugLog('MollomMW', 'Exception while checking content: ' . $e->getMessage());
-			// What's the default action if this fails?
-			// Accept it for now...
-			return true;
+			return $wgMollomMWAPIAcceptPolicy;
 		}
 	}
 }
