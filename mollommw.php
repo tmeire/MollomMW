@@ -120,13 +120,14 @@ class MollomSpamFilter {
 
 	var $sessionid;
 
-	function getCaptchaHTML ($image, $audio) {
+	function getCaptchaHTML ($sessionid, $image, $audio) {
 		return '<div class="mollom-captcha" style="padding: 10px 0;">
 					<strong>' . wfMsg('mollommw-word-verification') . '</strong><br>
 		       		<p>' . wfMsg('mollommw-possibly-spam') . '<br>
 		       			<a href="#" onclick="onMollomCaptchaToggle()">' . wfMsg('mollommw-captcha-toggle') . '</a>
 		       		</p>
 		       		<input type="hidden" id="mollom-captcha-type" name="mollom-captcha-type" value="text">
+		       		<input type="hidden" name="mollom-text-sessionid" value="' . $sessionid . '">
 		       		<input type="hidden" name="mollom-image-sessionid" value="' . $image['session_id'] . '">
 		       		<input type="hidden" name="mollom-audio-sessionid" value="' . $audio['session_id'] . '">
 		       		<span id="mollom-captcha-image">' . $image['html'] . '</span>
@@ -141,7 +142,7 @@ class MollomSpamFilter {
 		$out->addScriptFile($wgScriptPath . '/extensions/mollommw/skins/mollommw.js');
 		$image = Mollom::getImageCaptcha($this->sessionid);
 		$audio = Mollom::getAudioCaptcha($this->sessionid);
-		$out->addHtml($this->getCaptchaHtml($image, $audio));
+		$out->addHtml($this->getCaptchaHtml($this->sessionid, $image, $audio));
 	}
 
 	/**
@@ -149,7 +150,7 @@ class MollomSpamFilter {
 	 * 'spam'. Messages marked as 'unknown' or 'unsure' will trigger a captcha.
 	 */
 	function onEditFilter($editor, $text, $section, &$error) {
-		global $wgMollomMWAcceptPolicy;
+		global $wgUser, $wgMollomMWAcceptPolicy;
 
 		/* load the i18n messages */
 		wfLoadExtensionMessages('MollomMW');
@@ -171,7 +172,21 @@ class MollomSpamFilter {
 
 		// check the actual content
 		try {
-			$response = Mollom::checkContent(null, null, $text);
+			$sessionid = null;
+			if (isset($_POST['mollom-text-sessionid'])) {
+				$sessionid = $_POST['mollom-text-sessionid'];
+			}
+			
+			$id = null;
+			$name = null;
+			$email = null;
+			if ($wgUser->getId() != 0) {
+				$id = $wgUser->getId();
+				$name = $wgUser->getName();
+				$email = $wgUser->getEmail();
+			}
+
+			$response = Mollom::checkContent($sessionid, $editor->mTitle, $text, $name, null, $email, null, $id);
 			wfDebugLog('MollomMW', 'Mollom Response: ' . var_export($response, true));
 			switch ($response['spam']) {
 				case MOLLOM_HAM:
