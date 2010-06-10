@@ -311,11 +311,43 @@ class MollomClient extends Mollom {
 	}
 
 
-	public static function addBlacklistText($text, $context, $reason) {
-		$parameters = array();
+	private static function checkText ($text) {
+		return count($text) <= 100;
+	}
 
+
+	private static function checkContext ($context) {
+		return in_array($context, array('everything', 'links', 'author'));
+	}
+
+
+	private static function checkReason ($reason) {
+		return in_array($reason, array('spam', 'profanity', 'low-quality', 'unwanted'));
+	}
+
+
+	/**
+	 * Add a piece of text to the blacklist
+	 *
+	 * @param string $text, up to 100 characters
+	 * @param string $context, 'everything', 'links' or 'author'
+	 * @param string $reason, 'spam', 'profanity', 'low-quality' or	'unwanted'
+	 * @return always true
+	 */
+	public static function addBlacklistText($text, $context, $reason) {
+
+		if (self::checkText($text)) {
+			throw Exception('The text can only be 100 characters long!');
+		}
+		if (self::checkContext($context)) {
+			throw Exception('The context can only be everything, links or author!');
+		}
+		if (self::checkReason($reason)) {
+			throw Exception('The reason can only be spam, profanity, low-quality or unwanted!');
+		}
+
+		$parameters = array();
 		$parameters['text'] = $text;
-		// FIXME: add check for context and reason
 		$parameters['context'] = $context;
 		$parameters['reason'] = $reason;
 
@@ -323,11 +355,28 @@ class MollomClient extends Mollom {
 	}
 
 
+	/**
+	 * Remove a piece of text from the blacklist
+	 *
+	 * @param string $text, up to 100 characters
+	 * @param string $context, 'everything', 'links' or 'author'
+	 * @param string $reason, 'spam', 'profanity', 'low-quality' or	'unwanted'
+	 * @return always true
+	 */
 	public static function removeBlacklistText($text, $context, $reason) {
-		$parameters = array();
 
+		if (self::checkText($text)) {
+			throw Exception('The text can only be 100 characters long!');
+		}
+		if (self::checkContext($context)) {
+			throw Exception('The context can only be everything, links or author!');
+		}
+		if (self::checkReason($reason)) {
+			throw Exception('The reason can only be spam, profanity, low-quality or unwanted!');
+		}
+
+		$parameters = array();
 		$parameters['text'] = $text;
-		// FIXME: add check for context and reason
 		$parameters['context'] = $context;
 		$parameters['reason'] = $reason;
 
@@ -335,11 +384,22 @@ class MollomClient extends Mollom {
 	}
 
 
+	/**
+	 * Get a list of information about all the blacklisted text pieces.
+	 * 
+	 * @return array of information about blacklisted text
+	 */
 	public static function listBlacklistText() {
 		return self::doCall('listBlacklistText');
 	}
 
 
+	/**
+	 * Add the url to the blacklist
+	 * 
+	 * @param string $url
+	 * @return always true 
+	 */
 	public static function addBlacklistURL($url) {
 		$params = array();
 		$params['url'] = $url;
@@ -348,6 +408,12 @@ class MollomClient extends Mollom {
 	}
 
 
+	/**
+	 * Remove the url from the blacklist
+	 *
+	 * @param string $url
+	 * @return always true
+	 */
 	public static function removeBlacklistURL($url) {
 		$params = array();
 		$params['url'] = $url;
@@ -356,11 +422,14 @@ class MollomClient extends Mollom {
 	}
 
 
+	/**
+	 * Get a list of url's
+	 *
+	 * @return array of couples url & creation time
+	 */
 	public static function listBlacklistURL() {
 		return self::doCall('listBlacklistURL');
 	}
-
-
 }
 
 ?>
