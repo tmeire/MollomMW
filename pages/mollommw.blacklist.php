@@ -65,19 +65,19 @@ class MollomMWBlacklistPage extends SpecialPage {
 		}
 
 		if (isset($_POST['add']) && isset($_POST['url'])) {
-			Mollom::addBlacklistURL($_POST['url']);
+			MollomClient::addBlacklistURL($_POST['url']);
 		}
 
 		if (isset($_POST['remove']) && isset($_POST['url'])) {
-			Mollom::removeBlacklistURL($_POST['url']);
+			MollomClient::removeBlacklistURL($_POST['url']);
 		}
 
 		if (isset($_POST['add']) && isset($_POST['text']) && isset($_POST['context']) && isset($_POST['reason'])) {
-			Mollom::addBlacklistText($_POST['text'], $_POST['context'], $_POST['reason']);
+			MollomClient::addBlacklistText($_POST['text'], $_POST['context'], $_POST['reason']);
 		}
 
 		if (isset($_POST['remove']) && isset($_POST['text']) && isset($_POST['context']) && isset($_POST['reason'])) {
-			Mollom::removeBlacklistText($_POST['text'], $_POST['context'], $_POST['reason']);
+			MollomClient::removeBlacklistText($_POST['text'], $_POST['context'], $_POST['reason']);
 		}
 
 		$wgOut->addExtensionStyle($wgScriptPath . '/extensions/mollommw/skins/mollommw.css');
@@ -85,7 +85,7 @@ class MollomMWBlacklistPage extends SpecialPage {
 
 		$wgOut->addWikiText('== ' . wfMsg('mollommw-blacklist-url-title') . ' ==');
 		try {
-			$urls = Mollom::listBlacklistURL();
+			$urls = MollomClient::listBlacklistURL();
 			$wgOut->addHtml('<table class="blacklist">');
 			foreach ($urls as $url) {
 				$wgOut->addHtml('<tr>');
@@ -111,7 +111,7 @@ class MollomMWBlacklistPage extends SpecialPage {
 
 		$wgOut->addWikiText('== ' . wfMsg('mollommw-blacklist-text-title') . ' ==');
 		try {
-			$entries = Mollom::listBlacklistText();
+			$entries = MollomClient::listBlacklistText();
 			$wgOut->addHtml('<table>
 				<thead>
 					<tr>

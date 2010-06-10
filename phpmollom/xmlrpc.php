@@ -27,7 +27,7 @@ class XMLRPCRequest {
 
 		$response = xmlrpc_decode($file);
 		if (is_array($response) && xmlrpc_is_fault($response)) {
-			throw new XMLRPCException($reponse['faultString'], $response['faultCode']);
+			throw new XMLRPCException($response['faultString'], $response['faultCode']);
 		}
 		return $response;
 	}

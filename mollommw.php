@@ -33,7 +33,7 @@
 
 if (!defined('MEDIAWIKI')) { exit(1); }
 
-require_once(dirname(__FILE__) . '/phpmollom/mollom.php');
+require_once(dirname(__FILE__) . '/phpmollom/mollom.client.php');
 
 define('MOLLOMMW_NAME', 'MollomWM');
 define('MOLLOMMW_VERSION', '0.0.1');
@@ -67,11 +67,11 @@ if ($wgMollomDebug) {
 }
 
 if (isset($wgMollomReverseProxyAddresses) && is_array($wgMollomReverseProxyAddresses)) {
-	Mollom::setAllowedReverseProxyAddresses($wgMollomReverseProxyAddresses);
+	MollomClient::setAllowedReverseProxyAddresses($wgMollomReverseProxyAddresses);
 }
 
 if (isset($wgMollomRunsOnClusterSetup)) {
-	Mollom::setUsesServerSetup ($wgMollomRunsOnClusterSetup);
+	MollomClient::setUsesServerSetup ($wgMollomRunsOnClusterSetup);
 }
 
 if (!isset($wgMollomMWAcceptPolicy) && !is_bool($wgMollomMWAcceptPolicy)) {
@@ -140,8 +140,8 @@ class MollomSpamFilter {
 	function showCaptcha(&$out) {
 		global $wgScriptPath;
 		$out->addScriptFile($wgScriptPath . '/extensions/mollommw/skins/mollommw.js');
-		$image = Mollom::getImageCaptcha($this->sessionid);
-		$audio = Mollom::getAudioCaptcha($this->sessionid);
+		$image = MollomClient::getImageCaptcha($this->sessionid);
+		$audio = MollomClient::getAudioCaptcha($this->sessionid);
 		$out->addHtml($this->getCaptchaHtml($this->sessionid, $image, $audio));
 	}
 
@@ -160,7 +160,8 @@ class MollomSpamFilter {
 			$imageSessionId = $_POST['mollom-image-sessionid'];
 			$audioSessionId = $_POST['mollom-audio-sessionid'];
 			try {
-				if (Mollom::checkcaptcha(($_POST['mollom-captcha-type'] == "text") ? $imageSessionId : $audioSessionId, $_POST['mollom-solution'])) {
+				$sessionid = ($_POST['mollom-captcha-type'] == "text") ? $imageSessionId : $audioSessionId;
+				if (MollomClient::checkcaptcha($sessionid, $_POST['mollom-solution'])) {
 					wfDebugLog('MollomMW', 'Correctly solved a captcha');
 					return true;
 				}
@@ -186,7 +187,7 @@ class MollomSpamFilter {
 				$email = $wgUser->getEmail();
 			}
 
-			$response = Mollom::checkContent($sessionid, $editor->mTitle, $text, $name, null, $email, null, $id);
+			$response = MollomClient::checkContent($sessionid, $editor->mTitle, $text, $name, null, $email, null, $id);
 			wfDebugLog('MollomMW', 'Mollom Response: ' . var_export($response, true));
 			switch ($response['spam']) {
 				case MOLLOM_HAM:
@@ -209,7 +210,7 @@ class MollomSpamFilter {
 		global $wgMollomwMWAPIAcceptPolicy;
 		// check the actual content
 		try {
-			$response = Mollom::checkContent(null, null, $text);
+			$response = MollomClient::checkContent(null, $EditPage->mTitle, $text);
 			wfDebugLog('MollomMW', 'Mollom Response: ' . var_export($response, true));
 			switch ($response['spam']) {
 				case MOLLOM_SPAM:
