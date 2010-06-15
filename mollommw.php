@@ -62,7 +62,7 @@ global $wgMollomMWAPIAcceptPolicy;
 /* Setup the Mollom configuration */
 Mollom::setUserAgent(MOLLOMMW_NAME . '/' . MOLLOMMW_VERSION);
 
-if ($wgMollomDebug) {
+if (isset($wgMollomDebug) && $wgMollomDebug) {
 	$wgDebugLogGroups['MollomMW'] = dirname(__FILE__) . '/debug.log';
 }
 
@@ -115,6 +115,15 @@ function setupMollomMW () {
 	/* setup special permissions for the mollommw administration page */
 	global $wgGroupPermissions;
 	$wgGroupPermissions['sysop']['mollommw-admin'] = true;
+
+	/* setup up the default special rights */
+	global $wgMollomMWSpecialRights;
+	if (isset($wgMollomMWSpecialRights) && $wgMollomMWSpecialRights) {
+		$wgGroupPermissions['sysop']['mollommw-no-check'] = true;
+		$wgGroupPermissions['bureaucrat']['mollommw-no-check'] = true;
+
+		$wgGroupPermissions['email']['mollommw-no-captcha'] = true;
+	}
 }
 
 /**
@@ -160,7 +169,7 @@ class MollomSpamFilter {
 		/* load the i18n messages */
 		wfLoadExtensionMessages('MollomMW');
 
-		/* skip all users with mollommw-no-check or mollommw-admin rights */
+		/* skip all users with mollommw-no-check */
 		if ($wgUser->isAllowed('mollommw-no-check')) {
 			return true;
 		}
@@ -221,7 +230,12 @@ class MollomSpamFilter {
 	}
 	
 	function onAPIEditBeforeSave (&$EditPage, $text, &$resultArr) {
-		global $wgMollomwMWAPIAcceptPolicy;
+		global $wgUser, $wgMollomwMWAPIAcceptPolicy;
+
+		if ($wgUser->isAllowed('mollommw-no-check')) {
+			return true;
+		}
+
 		// check the actual content
 		try {
 			$response = MollomClient::checkContent(null, $EditPage->mTitle, $text);
@@ -231,7 +245,7 @@ class MollomSpamFilter {
 					$resultArr[] = wfMsg('mollom-spam');
 					return false;
 				case MOLLOM_HAM:
-				default: /* 'unsure' or unknown */
+				default: /* 'unsure' or any other value */
 					return true;
 			}
 		} catch (Exception $e) {

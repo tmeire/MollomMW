@@ -41,6 +41,9 @@ needs, like companies with complicated setups and dedicated servers.
   all messages are accepted, false means all messages are rejected. Default
   value is false.
 
+* $wgMollomMWSpecialRights: a bool indicating if the special user permissions
+  should be used. See the section below for more information on the subject.
+
 * $wgMollomReverseProxyAddresses: a list of ip addresses for reverse proxies.
   This allows the wiki to provide a more accurate ip to mollom,
   which increases the accuracy of Mollom.
@@ -65,10 +68,14 @@ The sysop group also has the special mollommw-admin permission. This permission
 grants them access to the special pages to manage blacklists, see statistics,...
 
 MollomMW permissions:
- * mollommw-admin: manage Mollom blacklists and see statistics
- * mollommw-no-check: don't perform any check on the edit, don't show a captcha
- * mollommw-no-captcha: perform a check on the edit, but accept when unsure
+* mollommw-admin: manage Mollom blacklists and see statistics
+* mollommw-no-check: don't perform any check on the edit, don't show a captcha
+* mollommw-no-captcha: perform a check on the edit, but accept when unsure
 
+If $wgMollomMWSpecialRights is true, mollommw will set the following default permissions:
+* sysop       => mollommw-no-check
+* bureaucrat  => mollommw-no-check
+* email       => mollommw-no-captcha
 
 
 
