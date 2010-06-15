@@ -15,7 +15,7 @@ $messages['en'] = array(
 	'mollommw-statistics'             => 'Statistics',
 
 	'mollommw-word-verification'      => 'Word verification',
-	'mollommw-audio-captcha'          => 'Play audio captcha',
+	'mollommw-captcha-toggle'         => 'Play audio captcha',
 	'mollommw-possibly-spam'          => 'Your edit looks like spam. To confirm your edit is not spam, type the characters you see in the picture below. If you can\'t read them, submit the form and a new image will be generated. Not case sensitive.',
 	'mollommw-spam'                   => 'You\'re message has been rejected as it\'s marked as spam.',
 
@@ -39,6 +39,10 @@ $messages['en'] = array(
 	'mollommw-blacklist-reason-low-quality' => 'low kwaliteit',
 	'mollommw-blacklist-reason-unwanted'    => 'unwanted',
 
+	'right-mollommw-admin'      => 'MollomMW Administration',
+	'right-mollommw-no-check'   => 'MollomMW doesn\'t perform a check on edits from this user.',
+	'right-mollommw-no-captcha' => 'MollomMW doesn\'t show captcha\'s to this user when content spaminess is unsure.',
+
 	'specialpages-group-mollommw'     => 'MollomMW Administration',
 	// no need to translate the lines below
 	'specialpages-specialpagegroup-mollommw-statistics' => 'mollommw',
@@ -53,7 +57,7 @@ $messages['nl'] = array(
 	'mollommw-statistics'             => 'Statistieken',
 
 	'mollommw-word-verification'      => 'Woord verificatie',
-	'mollommw-audio-captcha'          => 'Speel een geluidscaptcha',
+	'mollommw-captcha-toggle'         => 'Speel een geluidscaptcha',
 	'mollommw-possibly-spam'          => 'Je wijziging bevat verschillende kenmerken van spam. Typ de karakters uit onderstaande afbeelding over om te bevestigen dat de wijzigingen geen spam zijn. Sla de wijzigingen opnieuw op indien de afbeelding onleesbaar is, er zal dan een nieuwe afbeelding getoond worden. De karakters zijn niet hoofdlettergevoelig.',
 	'mollommw-spam'                   => 'Je bericht werd geweigerd omdat het aangemerkt werd als spam.',
 
@@ -76,6 +80,10 @@ $messages['nl'] = array(
 	'mollommw-blacklist-reason-profanity'   => 'obsceen taalgebruik',
 	'mollommw-blacklist-reason-low-quality' => 'lage kwaliteit',
 	'mollommw-blacklist-reason-unwanted'    => 'ongewenst',
+
+	'right-mollommw-admin'      => 'MollomMW Administratie',
+	'right-mollommw-no-check'   => 'MollomMW voert geen controle voor spam uit op aanpassingen van deze gebruiker.',
+	'right-mollommw-no-captcha' => 'MollomMW toont deze gebruiker geen captcha wanneer de edit mogelijk spam is.',
 
 	'specialpages-group-mollommw'     => 'MollomMW Administratie',
 );
