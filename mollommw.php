@@ -106,10 +106,15 @@ function setupMollomMW () {
 	$wgSpecialPages['mollommw-statistics'] = 'MollomMWStatPage';
 	$wgSpecialPages['mollommw-blacklists'] = 'MollomMWBlacklistPage';
 
+	/* define special rights for the mollommw module */
+	global $wgAvailableRights;
+	$wgAvailableRights[] = 'mollommw-admin';			// mollommw administrator rights
+	$wgAvailableRights[] = 'mollommw-no-check';			// no need to check the posts from this user
+	$wgAvailableRights[] = 'mollommw-no-captcha';		// no need to show this user a captcha
+
 	/* setup special permissions for the mollommw administration page */
-	global $wgGroupPermissions, $wgAvailableRights;
+	global $wgGroupPermissions;
 	$wgGroupPermissions['sysop']['mollommw-admin'] = true;
-	$wgAvailableRights[] = 'mollommw-admin';
 }
 
 /**
@@ -155,6 +160,11 @@ class MollomSpamFilter {
 		/* load the i18n messages */
 		wfLoadExtensionMessages('MollomMW');
 
+		/* skip all users with mollommw-no-check or mollommw-admin rights */
+		if ($wgUser->isAllowed('mollommw-no-check')) {
+			return true;
+		}
+
 		// a captcha was solved, check it first.
 		if (isset($_POST['mollom-captcha-type']) && isset($_POST['mollom-solution'])) {
 			$imageSessionId = $_POST['mollom-image-sessionid'];
@@ -195,10 +205,14 @@ class MollomSpamFilter {
 				case MOLLOM_SPAM:
 					$editor->spamPage();
 					return false;
-				default: /* 'unsure' or 'unknown' */
-					$this->sessionid = $response['session_id'];
-					$editor->showEditForm(array(&$this, 'showCaptcha'));
-					return false;
+				default: /* 'unsure' or any other value */
+					if ($wgUser->isAllowed('mollommw-no-captcha')) {
+						return true;
+					} else {
+						$this->sessionid = $response['session_id'];
+						$editor->showEditForm(array(&$this, 'showCaptcha'));
+						return false;
+					}
 			}
 		} catch (Exception $e) {
 			wfDebugLog('MollomMW', 'Exception while checking content: ' . $e->getMessage());
