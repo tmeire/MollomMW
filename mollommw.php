@@ -25,7 +25,7 @@
  * advised of the possibility of such damage.
  *
  * @author          Thomas Meire <blackskad+mollom@gmail.com>
- * @version         0.0.1
+ * @version         1.0
  *
  * @copyright       Copyright (c) 2010, Thomas Meire. All rights reserved.
  * @license         http://mollom.crsolutions.be/license Modified BSD License
@@ -36,7 +36,7 @@ if (!defined('MEDIAWIKI')) { exit(1); }
 require_once(dirname(__FILE__) . '/phpmollom/mollom.client.php');
 
 define('MOLLOMMW_NAME', 'MollomWM');
-define('MOLLOMMW_VERSION', '0.0.1');
+define('MOLLOMMW_VERSION', '1.0');
 
 $wgExtensionCredits['other'][] = array(
 	'path'        => __FILE__,

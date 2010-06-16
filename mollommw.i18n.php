@@ -3,6 +3,8 @@
  * Internationalisation file for MollomMW extension.
  *
  * @addtogroup Extensions
+ *
+ * @author Thomas Meire
  */
 
 $messages = array();

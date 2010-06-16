@@ -25,7 +25,7 @@
  * advised of the possibility of such damage.
  *
  * @author          Thomas Meire <blackskad+mollom@gmail.com>
- * @version         0.0.1
+ * @version         1.0
  *
  * @copyright       Copyright (c) 2010, Thomas Meire. All rights reserved.
  * @license         http://mollom.crsolutions.be/license Modified BSD License

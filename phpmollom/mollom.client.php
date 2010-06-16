@@ -1,4 +1,48 @@
 <?php
+/**
+ * Mollom class
+ *
+ * This source file can be used to communicate with mollom (http://mollom.com)
+ *
+ * The class is documented in the file itself, but you can find more documentation and examples on the docs-page (http://mollom.crsolutions.be/docs).
+ * If you find any bugs help me out and report them. Reporting can be done by sending an email to php-mollom-bugs[at]verkoyen[dot]eu. If you report a bug, make sure you give me enough information (include your code).
+ * If you have questions, try the Mollom-forum, don't send them by mail, I won't read them.
+ *
+ * Changelog since 1.0.1
+ * - Fixed a nasty bug. Possible infinite loop in doCall().
+ * - Fixed getServerList. I misinterpreted the documentation, so now the defaultserver is xmlrpc.mollom.com instead of the first fallback-server.
+ * - Fixed the timeout-issue. With fsockopen the timeout on connect wasn't respected. Rewrote the doCall function to use CURL over sockets.
+ *
+ * Changelog since 1.1.0
+ * - Fixed a problem with the IP-addresses. see http://blog.verkoyen.eu/2008/07/12/important-php-mollom-update/
+ *
+ * Changelog since 1.1.1
+ * - PHPMollom was using HTTP 1.1, now HTTP 1.0.
+ * - Fallbackserver are hardcoded, when no servers could be retrieved the fallbacks are used
+ *
+ * Changelog since 1.1.2
+ * - Typo
+ * - New Licence: BSD Modified
+ *
+ * License
+ * Copyright (c) 2008, Tijs Verkoyen. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+ * 3. The name of the author may not be used to endorse or promote products derived from this software without specific prior written permission.
+ *
+ * This software is provided by the author ``as is'' and any express or implied warranties, including, but not limited to, the implied warranties of merchantability and fitness for a particular purpose are disclaimed. In no event shall the author be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage.
+ *
+ * @author			Tijs Verkoyen <mollom@verkoyen.eu>
+ * @version			1.1.3
+ *
+ * @copyright		Copyright (c) 2008, Tijs Verkoyen. All rights reserved.
+ * @license			http://mollom.crsolutions.be/license BSD License
+ *
+ * Additional changes by Thomas Meire.
+ */
 
 require_once(dirname(__FILE__) . '/mollom.php');
 
